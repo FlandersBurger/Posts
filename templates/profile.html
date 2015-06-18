@@ -1,0 +1,26 @@
+<div class="container">
+  <form ng-submit="updateUser(username)">
+    <div class="form-group">
+      <label>Username</label>
+      <input class="form-control" type="text" ng-model="username">
+    </div>
+  </form>
+  <!--div id="rotationSliderContainer">
+    <div id="rotationSlider"></div>
+  </div-->
+  <form ng-submit="changePassword(oldPassword, newPassword, confirmPassword)">
+    <div class="form-group">
+      <label>Old Password</label>
+      <input class="form-control" type="password" ng-model="oldPassword">
+    </div>
+    <div class="form-group">
+      <label>New Password</label>
+      <input class="form-control password" type="password" ng-model="newPassword">
+    </div>
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input class="form-control password" type="password" ng-model="confirmPassword">
+    </div>
+    <input class="btn btn-success btn-lg btn-block" type="submit" value="Change Password">
+  </form>
+</div>

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+  <script src="/jquery.js"></script>
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
@@ -35,11 +36,10 @@
           <li><a href="#/"><i class="fa fa-lg fa-comment"></i></a></li>
           <li ng-hide="loggedIn"><a href="#/register"><i class="fa fa-lg fa-user-plus"></i></a></li>
           <li ng-hide="loggedIn"><a href="#/login"><i class="fa fa-lg fa-sign-in"></i></a></li>
-          <li ng-hide="!loggedIn"><a href="#/" ng-click="logout()"><i class="fa fa-lg fa-sign-out"></i></a></li>
         </ul>
-        <p ng-if="currentUser" class="navbar-text navbar-right">
-          {{currentUser.username}}
-        </p>
+        <ul class="nav navbar-nav navbar-right">
+          <li ng-if="currentUser"><a href="#/profile">{{currentUser.username}}</a></li>
+          <li ng-hide="!loggedIn"><a href="#/" ng-click="logout()"><i class="fa fa-lg fa-sign-out"></i></a></li>
       </div>
     </div>
   </nav>

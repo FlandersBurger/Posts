@@ -20,7 +20,7 @@ router.post('/', function (req, res, next) {
       if (err) { return next(err) }
       if (!valid) { return res.send(401) }
       console.log(user.username + ' authenticated')
-      var token = jwt.encode({userid: user.id, username: user.username}, config.secret)
+      var token = jwt.encode({userid: user.id}, config.secret)
       res.json(token)
     })
   })

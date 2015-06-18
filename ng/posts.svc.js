@@ -9,4 +9,8 @@ angular.module('app')
     return $http.post('/api/posts', post)
   }
 
+  this.getPost = function (post) {
+    return $http.get('/api/posts/' + post._id)
+  }
+
 })

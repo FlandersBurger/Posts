@@ -1,8 +1,7 @@
 var db = require('../db')
 
 var Post = db.model('Post', {
-  userid: { type: String, required: true },
-  username: { type: String, required: true },
+  poster: { type: String, ref: 'User', required: true },
   body: { type: String, required: true },
   date: { type: Date, required: true, default: Date.now }
 })

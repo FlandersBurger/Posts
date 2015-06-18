@@ -3,8 +3,8 @@ var router = require('express').Router()
 var websockets = require('../../websockets')
 
 router.get('/', function (req, res, next) {
-  console.log('Fetching Posts')
   Post.find()
+  .populate('poster', 'username')
   .sort('-date')
   .exec(function(err, posts) {
     if (err) { return next(err) }
@@ -12,10 +12,19 @@ router.get('/', function (req, res, next) {
   })
 })
 
+router.get('/:id', function (req, res, next) {
+  Post.findOne({_id: req.params.id})
+  .populate('poster', 'username')
+  .exec(function (err, post) {
+    if (err) { return next(err) }
+    res.json(post)
+  })
+})
+
+
 router.post('/', function (req, res, next) {
   var post = new Post({body: req.body.body})
-  post.userid = req.auth.userid
-  post.username = req.auth.username
+  post.poster = req.auth.userid
 
   post.save(function (err, post) {
     if (err) { return next(err) }

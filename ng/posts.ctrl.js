@@ -18,7 +18,10 @@ angular.module('app')
 
   $scope.$on('ws:new_post', function (_, post) {
     $scope.$apply(function () {
-      $scope.posts.unshift(post)
+      PostsSvc.getPost(post)
+      .then(function (response) {
+        $scope.posts.unshift(response.data)
+      })
     })
   })
 
