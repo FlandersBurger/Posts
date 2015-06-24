@@ -20,7 +20,7 @@ angular.module('app')
     UserSvc.logout()
     $scope.loggedIn = false
     $scope.currentUser = null
-    $location.path('/');
+    $location.path('home');
   }
 
 })

@@ -12,7 +12,7 @@ angular.module('app')
   }
 
   $scope.updateUser = function (username) {
-    
+
   }
 
 })

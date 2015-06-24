@@ -1,3 +1,4 @@
 angular.module('app', [
-  'ngRoute'
+  'ui.router',
+  'angular.circular-slider'
 ])

@@ -5,9 +5,22 @@
       <input class="form-control" type="text" ng-model="username">
     </div>
   </form>
-  <!--div id="rotationSliderContainer">
-    <div id="rotationSlider"></div>
-  </div-->
+  <div class="form-group">
+    <circular-slider
+      class="my-slider"
+      shape="Circle"
+      radius="50"
+      innerCircleRatio="0.8"
+      touch="true"
+      animate="true"
+      on-slide="onSlide(value)"
+      on-slide-end="onSlideEnd()"
+      min="1"
+      max="256"
+      value="1">
+        <i class="fa" ng-class="gender"></i>
+    </circular-slider>
+  </div>
   <form ng-submit="changePassword(oldPassword, newPassword, confirmPassword)">
     <div class="form-group">
       <label>Old Password</label>

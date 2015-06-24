@@ -1,60 +1,805 @@
+(function(window, angular, undefined) {
 
-$(function(){
-    var $container = $('#rotationSliderContainer');
-    var $slider = $('#rotationSlider');
+  //utility functions
+  function toInteger(o) {
+    return (o | 0) === o;
+  }
 
-    var sliderWidth = $slider.width();
-    var sliderHeight = $slider.height();
-    var radius = $container.width()/2;
-    var deg = 0;
+  function truthy() {
+    return true;
+  }
 
-    X = Math.round(radius* Math.sin(deg*Math.PI/180));
-    Y = Math.round(radius*  -Math.cos(deg*Math.PI/180));
-    $slider.css({ left: X+radius-sliderWidth/2, top: Y+radius-sliderHeight/2 });
+  function and(left, right) {
+    return function(o) {
+      return left(o) && right(o);
+    };
+  }
 
-    var mdown = false;
-    $container
-    .mousedown(function (e) { mdown = true; e.originalEvent.preventDefault(); })
-    .mouseup(function (e) { mdown = false; })
-    .mousemove(function (e) {
-        if(mdown)
-        {
+  // elem is jqLite
+  function $$(elem) {
+    // only one element
+    var dom = elem[0];
+    var computedStyle = window.getComputedStyle(dom, null);
 
-            // firefox compatibility
-            if(typeof e.offsetX === "undefined" || typeof e.offsetY === "undefined") {
-               var targetOffset = $(e.target).offset();
-               e.offsetX = e.pageX - targetOffset.left;
-               e.offsetY = e.pageY - targetOffset.top;
-            }
+    function getCss(prop) {
+      return function() {
+        return computedStyle[prop];
+      };
+    }
 
-            if($(e.target).is('#rotationSliderContainer'))
-                var mPos = {x: e.offsetX, y: e.offsetY};
-            else
-                var mPos = {x: e.target.offsetLeft + e.offsetX, y: e.target.offsetTop + e.offsetY};
+    function props(p) {
+      return dom[p];
+    }
 
-            var atan = Math.atan2(mPos.x-radius, mPos.y-radius);
-            deg = -atan/(Math.PI/180) + 180; // final (0-360 positive) degrees from mouse position
+    function getProps(prop) {
+      return function() {
+        return props(prop);
+      };
+    }
 
+    function parseToFloat(value) {
+      return parseFloat(value) || 0.0;
+    }
 
-            // for attraction to multiple of 90 degrees
-            var distance = Math.abs( deg - ( Math.round(deg / 120) * 120 ) );
+    function addFloats(left, right) {
+      return function() {
+        return parseToFloat(left()) + parseToFloat(right());
+      }
+    }
 
-            if( distance <= 10 )
-                deg = Math.round(deg / 120) * 120;
+    function applyFloatFn(fn) {
+      return function(param) {
+        return parseToFloat(fn(param));
+      };
+    }
 
-            if(deg == 360)
-                deg = 0;
+    function offsetParent() {
+      return angular.element(dom.offsetParent);
+    }
 
-            X = Math.round(radius* Math.sin(deg*Math.PI/180));
-            Y = Math.round(radius*  -Math.cos(deg*Math.PI/180));
+    function offset() {
+      var box = dom.getBoundingClientRect();
+      var docElem = dom.ownerDocument.documentElement;
 
-            $slider.css({ left: X+radius-sliderWidth/2, top: Y+radius-sliderHeight/2 });
+      return {
+        top: box.top + docElem.scrollTop - docElem.clientTop,
+        left: box.left + docElem.scrollLeft - docElem.clientLeft
+      };
+    }
 
-            var roundDeg = Math.round(deg);
+    function position() {
+      var p = $$(offsetParent());
+      var po = p.offset();
+      var box = offset();
 
-            $('#imageRotateDegrees').val(roundDeg);
+      po.top += parseToFloat(p.css('borderTopWidth'));
+      po.left += parseToFloat(p.css('borderLeftWidth'));
+
+      return {
+        top: box.top - po.top - parseToFloat(elem.css('marginTop')),
+        left: box.left - po.left - parseToFloat(elem.css('marginLeft')),
+      };
+    }
+
+    return {
+      css: elem.css,
+      prop: props,
+      width: applyFloatFn(getCss('width')),
+      height: applyFloatFn(getCss('height')),
+      // outer area + margin
+      outerWidth: addFloats(addFloats(getProps('offsetWidth'), getCss('marginLeft')),
+        getCss('marginRight')),
+      outerHeight: addFloats(addFloats(getProps('offsetHeight'), getCss('marginTop')),
+        getCss('marginBottom')),
+      innerWidth: addFloats(addFloats(getCss('width'), getCss('paddingLeft')),
+        getCss('paddingRight')),
+      innerHeight: addFloats(addFloats(getCss('height'), getCss('paddingTop')),
+        getCss('paddingBottom')),
+      offset: offset,
+      offsetParent: offsetParent,
+      position: position,
+    };
+  }
+
+  var cs = {};
+
+  var props = {
+
+    defaults: {
+      min: 0,
+      max: 359,
+      value: 0,
+      radius: 75,
+      innerCircleRatio: 0.5,
+      borderWidth: 1,
+      indicatorBallRatio: 0.2,
+      handleDistRatio: 1.0,
+      clockwise: true,
+      shape: "Circle",
+      touch: true,
+      animate: true,
+      animateDuration: 360,
+      selectable: false,
+      disabled: false,
+      onSlide: angular.noop,
+      onSlideEnd: angular.noop,
+    },
+
+    template: '\
+      <div class="acs-panel">\
+        <div class="acs">\
+          <div class="acs-value" ng-transclude>\
+          </div>\
+        </div>\
+        <div class="acs-indicator">\
+        </div>\
+      </div>\
+    ',
+  };
+
+  var shapes = {
+    "Circle": {
+      drawShape: function(acsComponents, radius) {
+        var d = radius * 2;
+        var rpx = d + "px";
+        var acs = acsComponents.acs;
+        var acsValue = acsComponents.acsValue;
+        var acsPanel = acsComponents.acsPanel;
+        var scope = acsComponents.scope;
+        var w = scope.borderWidth;
+
+        acs.css({
+          'width': rpx,
+          'height': rpx,
+          'border-radius': rpx,
+          'border-width': w + 'px',
+        });
+
+        var pd = d + w;
+
+        acsPanel.css({
+          'border-width': w + 'px',
+          'border-radius': pd + 'px',
+        });
+
+        var $$acs = $$(acs);
+        var $$acsValue = $$(acsValue);
+        var iRadius = scope.innerCircleRatio * radius;
+
+        acsValue.css({
+          'width': (iRadius * 2) + "px",
+          'height': (iRadius * 2) + "px",
+          'font-size': iRadius / 2 + "px",
+        });
+
+        var corner = radius - iRadius;
+        acsValue.css({
+          'top': (corner - $$acs.prop('clientTop') - $$acsValue.prop('clientTop')) + "px",
+          'left': (corner - $$acs.prop('clientLeft') - $$acsValue.prop('clientLeft')) +
+            "px",
+        });
+      },
+      getCenter: function(acsPosition, acsRadius) {
+        return {
+          x: acsPosition.left + acsRadius,
+          y: acsPosition.top + acsRadius,
+          r: acsRadius
+        };
+      },
+      deg2Val: function(deg) {
+        var scope = cs.components.scope;
+        var range = scope.max - scope.min + 1;
+        if (deg < 0 || deg > 359)
+          throw "Invalid angle " + deg;
+
+        deg = (deg + 90) % 360;
+        return Math.round(deg * (range / 360.0)) + scope.min;
+      },
+      val2Deg: function(value) {
+        var scope = cs.components.scope;
+        var range = scope.max - scope.min + 1;
+        if (value < scope.min || value > scope.max)
+          throw "Invalid range " + value;
+
+        var nth = value - scope.min;
+        return (Math.round(nth * (360.0 / range)) - 90) % 360;
+      },
+    }
+  };
+
+  var eventHandlers = (function() {
+
+    var mouseDown = false;
+    var onAnimate = false;
+    var lastTouchType = '';
+
+    var touchHandler = function(e) {
+      var touches = e.changedTouches;
+
+      // Ignore multi-touch
+      if (touches.length > 1) return;
+
+      var touch = touches[0];
+      var target = angular.element(touch.target);
+
+      if (!target.hasClass('acs')) return;
+
+      var $$target = $$(target);
+      var offset = $$target.offset();
+      var width = $$target.width();
+      var height = $$target.height();
+      var clientX = touch.clientX;
+      var clientY = touch.clientY;
+
+      if (clientX < offset.left || clientX > width + offset.left ||
+        clientY < offset.top || clientY > height + offset.top)
+        return;
+
+      var events = ["touchstart", "touchmove", "touchend", "touchcancel"];
+      var mouseEvents = ["mousedown", "mousemove", "mouseup", "mouseleave"];
+      var ev = events.indexOf(e.type);
+
+      if (ev === -1) return;
+
+      var type = mouseEvents[ev];
+      if (e.type === events[2] && lastTouchType === events[0]) {
+        type = "click";
+      }
+
+      var simulatedEvent = document.createEvent("MouseEvent");
+      simulatedEvent.initMouseEvent(type, true, true, window, 1,
+        touch.screenX, touch.screenY,
+        touch.clientX, touch.clientY, false,
+        false, false, false, 0, null);
+      touch.target.dispatchEvent(simulatedEvent);
+      e.preventDefault();
+      lastTouchType = e.type;
+    };
+
+    var translate = function(e) {
+      var cursor = {
+        x: e.offsetX || e.layerX,
+        y: e.offsetY || e.layerY
+      };
+
+      var dx = cursor.x - cs.acsCenter.x;
+      var dy = cursor.y - cs.acsCenter.y;
+
+      var rad = Math.atan2(dy, dx);
+      var deg = rad * 180.0 / Math.PI;
+      var d360 = (parseInt(deg < 0 ? 360.0 + deg : deg)) % 360;
+
+      // change coordinate
+      var scope = cs.components.scope;
+      var offset = scope.borderWidth + cs.acsBallRadius;
+
+      var x = cs.acsCenter.x + (cs.acsCenter.r * scope.handleDistRatio * Math.cos(rad)) -
+        offset;
+      var y = cs.acsCenter.y + (cs.acsCenter.r * scope.handleDistRatio * Math.sin(rad)) -
+        offset;
+
+      var sd360 = (shapes[scope.shape].val2Deg(scope.value) + 360) % 360;
+
+      if (sd360 === d360) return;
+
+      var distance = Math.min((d360 + 360 - sd360) % 360, (sd360 + 360 - d360) % 360);
+      if (!distance) distance = 180;
+
+      var clockwise = ((d360 + 360 - sd360) % 360) === distance;
+      var r = scope.animateDuration / distance;
+      var delay = 4;
+      var unitDeg = 1;
+
+      if (r >= 4) {
+        delay = parseInt(r);
+      } else if (r >= 1) {
+        unitDeg = parseInt(r) * 4;
+      } else {
+        unitDeg = (4 / r);
+      }
+
+      //linear animation
+      // TODO: add easing effect
+      var next = sd360;
+      var count = parseInt(distance / unitDeg);
+
+      onAnimate = true;
+      var animate = function() {
+        next = next + (clockwise ? unitDeg : -unitDeg);
+        next = (next + 360) % 360;
+        if (--count <= 0) {
+          clearInterval(timer);
+          onAnimate = false;
+          next = d360;
+        }
+        cs.funs.setValue(shapes[scope.shape].deg2Val(next));
+        scope.$apply();
+        if (!onAnimate) onSlideEnd();
+      };
+      var timer = window.setInterval(animate, delay);
+    };
+
+    function onSlideEnd() {
+      var scope = cs.components.scope;
+      if (typeof scope.onSlideEnd === 'function')
+        scope.onSlideEnd(scope.value);
+    }
+
+      valRange = (val - scope.max * valRange / 4) / (scope.max / 4)
+      r = Math.round(r + (rdif * valRange))
+      g = Math.round(g + (gdif * valRange))
+      b = Math.round(b + (bdif * valRange))
+      var hue = 'rgb(' + r + ',' + g + ',' + b + ')';
+
+      $('.acs-value').css({'background-color': hue});
+    }
+
+    var mousemoveHandler = function(e) {
+      e.stopPropagation();
+
+      if (!mouseDown || onAnimate) return;
+
+      var cursor = {
+        x: e.offsetX || e.layerX,
+        y: e.offsetY || e.layerY
+      };
+
+      var dx = cursor.x - cs.acsCenter.x;
+      var dy = cursor.y - cs.acsCenter.y;
+
+      var rad = Math.atan2(dy, dx);
+      var deg = rad * 180.0 / Math.PI;
+      var d360 = (parseInt(deg < 0 ? 360.0 + deg : deg)) % 360;
+      var scope = cs.components.scope;
+      var offset = scope.borderWidth + cs.acsBallRadius;
+      //Code to snap the slider
+      var distance = Math.abs( deg - ( Math.round(deg / 90) * 90 ));
+      if( distance <= 8 ) {
+          deg = Math.round(deg / 90) * 90;
+          rad = deg * Math.PI /180.0;
+      }
+      //
+
+      var x = cs.acsCenter.x + (cs.acsCenter.r * scope.handleDistRatio * Math.cos(rad)) -
+        offset;
+      var y = cs.acsCenter.y + (cs.acsCenter.r * scope.handleDistRatio * Math.sin(rad)) -
+        offset;
+
+      cs.components.acsIndicator.css('top', y + "px");
+      cs.components.acsIndicator.css('left', x + "px");
+
+      var d2v = shapes[scope.shape].deg2Val(d360);
+      var val = scope.clockwise ? d2v : (scope.max - d2v);
+
+      if (val < scope.min) val = scope.min;
+      else if (val > scope.max) val = scope.max;
+
+      scope.value = scope.$$value = val;
+      genderTransition(val)
+      scope.onSlide(val);
+
+      scope.$apply();
+    };
+
+    var mousedownHandler = function(e) {
+      if(cs.components.scope.disabled)
+        return;
+      mouseDown = true;
+      e.stopPropagation();
+    };
+
+    var mouseupHandler = function(e) {
+      if(cs.components.scope.disabled)
+        return;
+      mouseDown = false;
+      e.stopPropagation();
+    };
+
+    var clickHandler = function(e) {
+      if(cs.components.scope.disabled)
+        return;
+      e.stopPropagation();
+      var cursor = {
+        x: e.offsetX || e.layerX,
+        y: e.offsetY || e.layerY
+      };
+
+      var dx = cursor.x - cs.acsCenter.x;
+      var dy = cursor.y - cs.acsCenter.y;
+      var scope = cs.components.scope;
+
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (cs.acsRadius - distance <= cs.acsRadius * 0.1 || distance > cs.acsRadius) {
+        if (scope.animate) {
+          translate(e);
+        } else {
+          mouseDown = true;
+          mousemoveHandler(e);
+          onSlideEnd();
+        }
+      } else onSlideEnd();
+
+      mouseDown = false;
+    };
+
+    return {
+      touch: touchHandler,
+      mousemove: mousemoveHandler,
+      mousedown: mousedownHandler,
+      mouseup: mouseupHandler,
+      mouseleave: mouseupHandler,
+      click: clickHandler
+    };
+  })();
+
+  function circularSlider() {
+    return {
+      template: props.template,
+      restrict: 'EA',
+      transclude: true,
+      controller: CircularSliderController,
+      controllerAs: 'slider',
+      scope: {
+        min: '=?',
+        max: '=?',
+        value: '=?',
+        radius: '=?',
+        innerCircleRatio: '=?',
+        indicatorBallRatio: '=?',
+        handleDistRatio: '=?',
+        borderWidth: '=?',
+        clockwise: '=?',
+        shape: '@?',
+        touch: '=?',
+        animate: '=?',
+        animateDuration: '=?',
+        selectable: '=?',
+        disabled: '=?',
+        onSlide: '&',
+        onSlideEnd: '&',
+      },
+      link: link,
+    };
+
+    function link(scope, element, attr, controller, transcludeFn) {
+
+      if(angular.isUndefined(scope.value))
+        scope.value = scope.min;
+
+      angular.forEach(scope.$$isolateBindings, function(binding, key) {
+        if (angular.isUndefined(scope[key])) {
+          scope[key] = props.defaults[key];
+        }
+      });
+
+      // validations
+      controller.validateBindings();
+
+      // building components
+      element.addClass('acs-slider');
+      // draw & wiring events
+      redrawShape();
+
+      cs.funs = {
+        'setValue': setValue,
+      };
+
+      // assign cs scope as transclude elements scope
+      transcludeFn(scope, function (clone) {
+        angular.element(element[0].getElementsByClassName('acs-value')).empty().append(clone);
+      });
+
+      // watchers
+      scope.$watch('value', function(v) {
+        if(cs.components.scope.disabled)
+          return;
+        if(v !== scope.$$value) {
+          try {
+            cs.funs.setValue(v);
+          } catch(e) {
+            scope.value = scope.$$value;
+            throw e;
+          }
+        }
+      });
+
+      // private functions
+
+      function redrawShape() {
+        var component = getComponents();
+        var radius = getRadius();
+        shapes[scope.shape].drawShape(component, radius);
+        drawIndicatorBall(component, radius);
+
+        var $$acs = $$(component.acs);
+        var $$acsIndicator = $$(component.acsIndicator);
+        cs.acsPosition = $$acs.position();
+        cs.acsRadius = $$acs.width() / 2;
+        cs.acsBallRadius = $$acsIndicator.width() / 2;
+        cs.acsCenter = shapes[scope.shape].getCenter(cs.acsPosition, cs.acsRadius);
+
+        if (!scope.selectable) component.acsPanel.addClass('noselect');
+        else component.acsPanel.removeClass('noselect');
+
+        if (scope.touch) touchable();
+
+        angular.forEach(['mouseup', 'mousedown', 'mousemove', 'mouseleave', 'click'], function(type) {
+          element.on(type, eventHandlers[type]);
+        });
+
+        setValue(scope.value || scope.min);
+      }
+
+      function touchable() {
+        angular.forEach(["touchstart", "touchmove", "touchend", "touchcancel"], function(
+          type) {
+          element.on(type, eventHandlers.touch);
+        });
+      }
+      
+      function genderTransition(value) {
+        var r, g, b, rdif, gdif, bdif
+        var valRange
+        //green - pink
+        if (val >= 0 && val < 64) {
+          valRange = 0
+          r = 94
+          rdif = 218 - 94
+          g = 217
+          gdif = 139 - 217
+          b = 96
+          bdif = 196 - 96
+          scope.gender = "fa-venus"
+        //pink - purple
+      } else if (val >= 64 && val < 128) {
+          valRange = 1
+          r = 218
+          rdif = 152 - 218
+          g = 139
+          gdif = 43 - 139
+          b = 196
+          bdif = 227 - 196
+          scope.gender = "fa-transgender-alt"
+
+        //purple - blue
+      } else if (val >= 128 && val < 192) {
+          valRange = 2
+          r = 152
+          rdif = 112 - 152
+          g = 43
+          gdif = 113 - 43
+          b = 227
+          bdif = 199 - 227
+          scope.gender = "fa-mars"
+
+        //blue - green
+        } else {
+          valRange = 3
+          r = 112
+          rdif = 94 - 112
+          g = 113
+          gdif = 217 - 113
+          b = 199
+          bdif = 96 - 199
+          scope.gender = "fa-genderless"
 
         }
-    });
 
-  });
+
+      function setValue(value) {
+        controller.validateBinding('value');
+
+        var val = scope.clockwise ? value : (scope.max - value);
+        var d360 = shapes[scope.shape].val2Deg(val);
+        var rad = d360 * Math.PI / 180;
+        var components = getComponents();
+        var offset = components.scope.borderWidth + cs.acsBallRadius;
+
+        var x = cs.acsCenter.x + (cs.acsCenter.r * scope.handleDistRatio * Math.cos(rad)) -
+          offset;
+        var y = cs.acsCenter.y + (cs.acsCenter.r * scope.handleDistRatio * Math.sin(rad)) -
+          offset;
+
+        components.acsIndicator.css('top', y + "px");
+        components.acsIndicator.css('left', x + "px");
+
+        scope.value = scope.$$value = value;
+        genderTransition(value)
+        if (typeof scope.onSlide === 'function')
+          scope.onSlide(value);
+      }
+
+      function drawIndicatorBall(component, radius) {
+        component.acsIndicator.css({
+          'width': (radius * scope.indicatorBallRatio) + "px",
+          'height': (radius * scope.indicatorBallRatio) + "px",
+        });
+      };
+
+      function getComponents() {
+        return cs.components ? cs.components : buildComponents();
+
+        function buildComponents() {
+          var acsPanel = element.children();
+          var acsPanelChildren = acsPanel.children();
+          var acs = angular.element(acsPanelChildren[0]);
+          var acsIndicator = angular.element(acsPanelChildren[1]);
+          var acsValue = acs.children();
+
+          var acsComponents = {
+            'acsPanel': acsPanel,
+            'acs': acs,
+            'acsIndicator': acsIndicator,
+            'acsValue': acsValue,
+            'scope': scope,
+            'ctrl': controller,
+          };
+          return (cs.components = acsComponents);
+        }
+      }
+
+      function getRadius() {
+        return Math.abs(parseInt(scope.radius)) || props.defaults.radius;
+      }
+    }
+  }
+
+  function CircularSliderController($scope) {
+
+    function typeErrorMsg(typeName) {
+      return function(binding, value) {
+        return [binding, '(', value, ') - Expected', typeName].join(' ');
+      };
+    }
+
+    var shapes = ['Circle'
+    ];
+
+    var transforms = {
+      integer: {
+        bindings: ['min', 'max', 'value', 'radius', 'animateDuration', 'borderWidth'],
+        transform: parseInt
+      },
+      number: {
+        bindings: ['innerCircleRatio', 'indicatorBallRatio', 'handleDistRatio'],
+        transform: parseFloat,
+      },
+      'boolean': {
+        bindings: ['touch', 'animate', 'selectable', 'clockwise', 'disabled'],
+        transform: function(o) {
+          return o === 'true' || o === true;
+        },
+      },
+      'function': {
+        bindings: ['onSlide', 'onSlideEnd'],
+        transform: function(fun) {
+          return fun ? fun : angular.noop;
+        },
+      }
+    };
+
+    var rules = {
+      type: {
+        integer: {
+          bindings: ['min', 'max', 'value', 'radius', 'animateDuration', 'borderWidth'],
+          test: toInteger,
+          onError: typeErrorMsg('integer')
+        },
+        number: {
+          bindings: ['innerCircleRatio', 'indicatorBallRatio', 'handleDistRatio'],
+          test: isFinite,
+          onError: typeErrorMsg('number')
+        },
+        'boolean': {
+          bindings: ['touch', 'animate', 'selectable', 'clockwise', 'disabled'],
+          test: truthy,
+          onError: typeErrorMsg('boolean')
+        },
+        'function': {
+          bindings: ['onSlide', 'onSlideEnd'],
+          test: angular.isFunction,
+          onError: typeErrorMsg('function')
+        },
+      },
+
+      constraint: {
+        range: {
+          bindings: ['min', 'max'],
+          test: function minMax() {
+            return $scope.min <= $scope.max;
+          },
+          onError: function() {
+            return ['Invalid slide range: [', $scope.min, ',', $scope.max, ']'].join('');
+          },
+        },
+        value: {
+          bindings: ['value'],
+          test: function valueInRange(value) {
+            return $scope.min <= value && value <= $scope.max;
+          },
+          onError: function() {
+            return [$scope.value, '(value) out of range: [', $scope.min, ',', $scope.max,
+              ']'
+            ].join('');
+          },
+        },
+        shape: {
+          bindings: ['shape'],
+          test: function shapeSupported() {
+            return shapes.indexOf($scope.shape) !== -1;
+          },
+          onError: function() {
+            return ['Unsupported shape: ', $scope.shape].join('');
+          },
+        },
+        ratio: {
+          bindings: ['innerCircleRatio', 'handleDistRatio', 'indicatorBallRatio'],
+          test: function ratio(value) {
+            return value >= 0.0 && value <= 1.0;
+          },
+          onError: function(b, value) {
+            return [b + '(', value, ') is out of range: [0,1]'].join('');
+          },
+        },
+      }
+    };
+
+    this.validateBindings = function(property) {
+      var props = property ? property : this.props,
+        p, binding;
+
+      for (p in props) {
+        // Apply binding transformer
+        if (props[p].transform) {
+          $scope[p] = props[p].transform($scope[p]);
+        }
+        // test binding types and constraints
+        props[p].tests.forEach(function(t) {
+          if (!t.test($scope[p])) {
+            throw t.onError(p, $scope[p]);
+          }
+        });
+      }
+    };
+
+    this.validateBinding = function(binding) {
+      if (angular.isUndefined(binding)) return;
+      var property = {};
+      property[binding] = this.props[binding];
+      this.validateBindings(property);
+    };
+
+    function init(controller) {
+
+      // build constraints & transforms
+      angular.forEach(rules, function(category, rule) {
+        angular.forEach(category, function(action, name) {
+          var bindings = action.bindings;
+          bindings.map(function(binding) {
+            controller[binding] = controller[binding] || {
+              tests: []
+            };
+            controller[binding].tests.push({
+              test: action.test,
+              onError: action.onError
+            });
+          });
+        });
+      });
+
+      angular.forEach(transforms, function(transformer) {
+        angular.forEach(transformer.bindings, function(binding) {
+          controller[binding].transform = transformer.transform;
+        })
+      });
+    }
+
+    init(this.props = {});
+  }
+
+  CircularSliderController.$inject = ['$scope'];
+
+  angular.module('angular.circular-slider', [])
+    .directive('circularSlider', circularSlider);
+
+}(window, window.angular));

@@ -16,6 +16,7 @@
     "lodash": "^3.9.3",
     "mongodb-uri": "^0.9.7",
     "mongoose": "^4.0.2",
+    "ui-router": "0.0.1",
     "ws": "^0.7.2"
   }
 }
