@@ -21,6 +21,18 @@ angular.module('app')
     })
   }
 
+  svc.changePassword = function (oldPassword, newPassword) {
+    $http.post('/api/users/password', {
+      oldPassword: oldPassword, newPassword : newPassword
+    })
+  }
+
+  svc.changeUsername = function (newUsername) {
+    $http.post('/api/users/username', {
+      newUsername: newUsername
+    })
+  }
+
   svc.logout = function () {
     window.localStorage.clear()
     $http.defaults.headers.common['X-Auth'] = ''

@@ -1,298 +1,252 @@
-(function(window, angular, undefined) {
+/*! The MIT License (MIT)
+Copyright (c) 2014 Prince John Wesley <princejohnwesley@gmail.com>
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+**/
+(function($, undefined) {
 
-  //utility functions
-  function toInteger(o) {
-    return (o | 0) === o;
-  }
+  "use strict";
+  $.fn.CircularSlider = function(options) {
 
-  function truthy() {
-    return true;
-  }
+    var slider = this;
 
-  function and(left, right) {
-    return function(o) {
-      return left(o) && right(o);
+    if (slider.find('div.jcs-panel').length !== 0) throw "Already Created!!!";
+
+    var drawIndicatorBall = function(jcsComponents, radius) {
+      if(jcsComponents.jcsIndicator.width() && jcsComponents.jcsIndicator.height())
+      return;
+
+      jcsComponents.jcsIndicator.css({
+        'width': (radius / 5) + "px",
+        'height': (radius / 5) + "px",
+      });
     };
-  }
 
-  // elem is jqLite
-  function $$(elem) {
-    // only one element
-    var dom = elem[0];
-    var computedStyle = window.getComputedStyle(dom, null);
+    var shapes = {
+      "Circle": {
+        drawShape: function(jcsComponents, radius) {
+          var d = radius * 2;
+          var rpx = d + "px";
+          var jcs = jcsComponents.jcs;
+          var jcsValue = jcsComponents.jcsValue;
+          var jcsPanel = jcsComponents.jcsPanel;
 
-    function getCss(prop) {
-      return function() {
-        return computedStyle[prop];
-      };
-    }
+          jcs.css({
+            'width': rpx,
+            'height': rpx,
+            'border-radius': rpx
+          });
 
-    function props(p) {
-      return dom[p];
-    }
+          var pd = d + (radius / 10);
 
-    function getProps(prop) {
-      return function() {
-        return props(prop);
-      };
-    }
+          jcsPanel.css({
+            'border-width': (radius / 10) + 'px',
+            'border-radius': pd + 'px',
+          });
 
-    function parseToFloat(value) {
-      return parseFloat(value) || 0.0;
-    }
+          var outerArea = (jcs.outerWidth() - jcs.innerWidth()) + (jcsValue.outerWidth() - jcsValue.innerWidth());
+          var iRadius = settings.innerCircleRatio * radius;
+          var corner = radius - iRadius - outerArea / 2;
+          jcsValue.css({
+            'width': (iRadius * 2) + "px",
+            'height': (iRadius * 2) + "px",
+            'font-size': iRadius / 2 + "px",
+            'top': corner + "px",
+            'left': corner + "px",
+          });
+        },
+        getCenter: function(jcsPosition, jcsRadius) {
+          return {
+            x: jcsPosition.left + jcsRadius,
+            y: jcsPosition.top + jcsRadius,
+            r: jcsRadius
+          };
+        },
+        deg2Val: function(deg) {
+          if (deg < 0 || deg > 359)
+          throw "Invalid angle " + deg;
 
-    function addFloats(left, right) {
-      return function() {
-        return parseToFloat(left()) + parseToFloat(right());
+          deg = (deg + 90) % 360;
+          return Math.round(deg * (range / 360.0)) + settings.min;
+        },
+        val2Deg: function(value) {
+          if (value < settings.min || value > settings.max)
+          throw "Invalid range " + value;
+
+          var nth = value - settings.min;
+
+          return (Math.round(nth * (360.0 / range)) - 90) % 360;
+        },
       }
-    }
-
-    function applyFloatFn(fn) {
-      return function(param) {
-        return parseToFloat(fn(param));
-      };
-    }
-
-    function offsetParent() {
-      return angular.element(dom.offsetParent);
-    }
-
-    function offset() {
-      var box = dom.getBoundingClientRect();
-      var docElem = dom.ownerDocument.documentElement;
-
-      return {
-        top: box.top + docElem.scrollTop - docElem.clientTop,
-        left: box.left + docElem.scrollLeft - docElem.clientLeft
-      };
-    }
-
-    function position() {
-      var p = $$(offsetParent());
-      var po = p.offset();
-      var box = offset();
-
-      po.top += parseToFloat(p.css('borderTopWidth'));
-      po.left += parseToFloat(p.css('borderLeftWidth'));
-
-      return {
-        top: box.top - po.top - parseToFloat(elem.css('marginTop')),
-        left: box.left - po.left - parseToFloat(elem.css('marginLeft')),
-      };
-    }
-
-    return {
-      css: elem.css,
-      prop: props,
-      width: applyFloatFn(getCss('width')),
-      height: applyFloatFn(getCss('height')),
-      // outer area + margin
-      outerWidth: addFloats(addFloats(getProps('offsetWidth'), getCss('marginLeft')),
-        getCss('marginRight')),
-      outerHeight: addFloats(addFloats(getProps('offsetHeight'), getCss('marginTop')),
-        getCss('marginBottom')),
-      innerWidth: addFloats(addFloats(getCss('width'), getCss('paddingLeft')),
-        getCss('paddingRight')),
-      innerHeight: addFloats(addFloats(getCss('height'), getCss('paddingTop')),
-        getCss('paddingBottom')),
-      offset: offset,
-      offsetParent: offsetParent,
-      position: position,
     };
-  }
 
-  var cs = {};
-
-  var props = {
-
-    defaults: {
+    var defaults = {
+      radius: 75,
+      innerCircleRatio: '0.5',
+      handleDist : 100,
       min: 0,
       max: 359,
       value: 0,
-      radius: 75,
-      innerCircleRatio: 0.5,
-      borderWidth: 1,
-      indicatorBallRatio: 0.2,
-      handleDistRatio: 1.0,
       clockwise: true,
+      labelSuffix: "",
+      labelPrefix: "",
       shape: "Circle",
       touch: true,
       animate: true,
-      animateDuration: 360,
+      animateDuration : 360,
       selectable: false,
-      disabled: false,
-      onSlide: angular.noop,
-      onSlideEnd: angular.noop,
-    },
-
-    template: '\
-      <div class="acs-panel">\
-        <div class="acs">\
-          <div class="acs-value" ng-transclude>\
-          </div>\
-        </div>\
-        <div class="acs-indicator">\
-        </div>\
-      </div>\
-    ',
-  };
-
-  var shapes = {
-    "Circle": {
-      drawShape: function(acsComponents, radius) {
-        var d = radius * 2;
-        var rpx = d + "px";
-        var acs = acsComponents.acs;
-        var acsValue = acsComponents.acsValue;
-        var acsPanel = acsComponents.acsPanel;
-        var scope = acsComponents.scope;
-        var w = scope.borderWidth;
-
-        acs.css({
-          'width': rpx,
-          'height': rpx,
-          'border-radius': rpx,
-          'border-width': w + 'px',
-        });
-
-        var pd = d + w;
-
-        acsPanel.css({
-          'border-width': w + 'px',
-          'border-radius': pd + 'px',
-        });
-
-        var $$acs = $$(acs);
-        var $$acsValue = $$(acsValue);
-        var iRadius = scope.innerCircleRatio * radius;
-
-        acsValue.css({
-          'width': (iRadius * 2) + "px",
-          'height': (iRadius * 2) + "px",
-          'font-size': iRadius / 2 + "px",
-        });
-
-        var corner = radius - iRadius;
-        acsValue.css({
-          'top': (corner - $$acs.prop('clientTop') - $$acsValue.prop('clientTop')) + "px",
-          'left': (corner - $$acs.prop('clientLeft') - $$acsValue.prop('clientLeft')) +
-            "px",
-        });
-      },
-      getCenter: function(acsPosition, acsRadius) {
-        return {
-          x: acsPosition.left + acsRadius,
-          y: acsPosition.top + acsRadius,
-          r: acsRadius
-        };
-      },
-      deg2Val: function(deg) {
-        var scope = cs.components.scope;
-        var range = scope.max - scope.min + 1;
-        if (deg < 0 || deg > 359)
-          throw "Invalid angle " + deg;
-
-        deg = (deg + 90) % 360;
-        return Math.round(deg * (range / 360.0)) + scope.min;
-      },
-      val2Deg: function(value) {
-        var scope = cs.components.scope;
-        var range = scope.max - scope.min + 1;
-        if (value < scope.min || value > scope.max)
-          throw "Invalid range " + value;
-
-        var nth = value - scope.min;
-        return (Math.round(nth * (360.0 / range)) - 90) % 360;
-      },
-    }
-  };
-
-  var eventHandlers = (function() {
-
-    var mouseDown = false;
-    var onAnimate = false;
-    var lastTouchType = '';
-
-    var touchHandler = function(e) {
-      var touches = e.changedTouches;
-
-      // Ignore multi-touch
-      if (touches.length > 1) return;
-
-      var touch = touches[0];
-      var target = angular.element(touch.target);
-
-      if (!target.hasClass('acs')) return;
-
-      var $$target = $$(target);
-      var offset = $$target.offset();
-      var width = $$target.width();
-      var height = $$target.height();
-      var clientX = touch.clientX;
-      var clientY = touch.clientY;
-
-      if (clientX < offset.left || clientX > width + offset.left ||
-        clientY < offset.top || clientY > height + offset.top)
-        return;
-
-      var events = ["touchstart", "touchmove", "touchend", "touchcancel"];
-      var mouseEvents = ["mousedown", "mousemove", "mouseup", "mouseleave"];
-      var ev = events.indexOf(e.type);
-
-      if (ev === -1) return;
-
-      var type = mouseEvents[ev];
-      if (e.type === events[2] && lastTouchType === events[0]) {
-        type = "click";
-      }
-
-      var simulatedEvent = document.createEvent("MouseEvent");
-      simulatedEvent.initMouseEvent(type, true, true, window, 1,
-        touch.screenX, touch.screenY,
-        touch.clientX, touch.clientY, false,
-        false, false, false, 0, null);
-      touch.target.dispatchEvent(simulatedEvent);
-      e.preventDefault();
-      lastTouchType = e.type;
+      slide: function(ui, value) {},
+      onSlideEnd: function(ui, value) {},
+      formLabel: undefined
     };
 
+    var settings = $.extend({}, defaults, options);
+
+    var validateSettings = function() {
+
+      if ((settings.min | 0) !== settings.min) throw "Invalid min value : " + settings.min;
+      if ((settings.max | 0) !== settings.max) throw "Invalid max value : " + settings.max;
+      if ((settings.value | 0) !== settings.value) throw "Invalid initial value : " + settings.value;
+      if (settings.max < settings.min) throw "Invalid range : " + settings.max + "<" + settings.min;
+
+      if (settings.value < settings.min) settings.value = settings.min;
+      if (settings.value > settings.max) settings.value = settings.max;
+
+      if (!settings.labelSuffix) settings.labelSuffix = defaults.labelSuffix;
+      if (!settings.labelPrefix) settings.labelPrefix = defaults.labelPrefix;
+      if (settings.formLabel && !$.isFunction(settings.formLabel)) settings.formLabel = defaults.formLabel;
+
+      if (!settings.shape) settings.shape = defaults.shape;
+      if (!shapes[settings.shape]) throw "Invalid shape : " + settings.shape;
+
+      if (!settings.innerCircleRatio || settings.innerCircleRatio < 0.1 || settings.innerCircleRatio > 0.9)
+      throw "Invalid innerCircleRatio. Expected: between 0.1 and 0.9, Found: " + settings.innerCircleRatio;
+
+      if ((settings.animateDuration | 0) !== settings.animateDuration ||
+      settings.animateDuration < 0)
+      throw "Invalid animate duration(in ms) : " + settings.animateDuration;
+
+      if (((settings.handleDist | 0) !== settings.handleDist) || settings.handleDist <= 0 || settings.handleDist > 100)
+      settings.handleDist = defaults.handleDist;
+
+      settings.animate = !!settings.animate;
+    };
+
+    validateSettings();
+
+    var range = settings.max - settings.min + 1;
+
+    var genders = [
+      {
+        'name' : 'male',
+        'r' : 112,
+        'g' : 113,
+        'b' : 199,
+        'symbol' : 'fa-mars'
+      },
+      {
+        'name' : 'transgender',
+        'r' : 152,
+        'g' : 43,
+        'b' : 227,
+        'symbol' : 'fa-transgender-alt'
+      },
+      {
+        'name' : 'female',
+        'r' : 218,
+        'g' : 139,
+        'b' : 196,
+        'symbol' : 'fa-venus'
+      },
+      {
+        'name' : 'genderless',
+        'r' : 94,
+        'g' : 217,
+        'b' : 96,
+        'symbol' : 'fa-genderless'
+      }
+    ]
+
+    var jcsPanel = $('<div class="jcs-panel"><div class="jcs"><span class="jcs-value"></span></div><div class="jcs-indicator"> </div></div>');
+    jcsPanel.appendTo(slider);
+
+    var radius = Math.abs(parseInt(settings.radius)) || defaults.radius;
+    var jcs = jcsPanel.find('div.jcs');
+    var jcsIndicator = jcsPanel.find('div.jcs-indicator');
+    var jcsValue = jcsPanel.find('span.jcs-value');
+
+    var jcsComponents = {
+      'jcs': jcs,
+      'jcsPanel': jcsPanel,
+      'jcsIndicator': jcsIndicator,
+      'jcsValue': jcsValue
+    };
+
+    //draw circles
+    shapes[settings.shape].drawShape(jcsComponents, radius);
+    drawIndicatorBall(jcsComponents, radius);
+
+    var jcsPosition = jcs.position();
+    var jcsOuterArea = jcs.outerWidth() - jcs.innerWidth();
+    var jcsBallOuterArea = jcsIndicator.outerWidth() - jcsIndicator.innerWidth();
+
+    var jcsRadius = (jcs.width() + jcsOuterArea) / 2;
+    var jcsBallRadius = (jcsIndicator.width() + jcsBallOuterArea) / 2;
+    var jcsCenter = shapes[settings.shape].getCenter(jcsPosition, jcsRadius);
+
+
+    // event binding
+    var mouseDown = false;
+    var onAnimate = false;
+
+
     var translate = function(e) {
+
       var cursor = {
-        x: e.offsetX || e.layerX,
-        y: e.offsetY || e.layerY
+        x: e.offsetX || e.originalEvent.layerX,
+        y: e.offsetY || e.originalEvent.layerY
       };
 
-      var dx = cursor.x - cs.acsCenter.x;
-      var dy = cursor.y - cs.acsCenter.y;
+      var dx = cursor.x - jcsCenter.x;
+      var dy = cursor.y - jcsCenter.y;
 
       var rad = Math.atan2(dy, dx);
       var deg = rad * 180.0 / Math.PI;
       var d360 = (parseInt(deg < 0 ? 360.0 + deg : deg)) % 360;
 
       // change coordinate
-      var scope = cs.components.scope;
-      var offset = scope.borderWidth + cs.acsBallRadius;
 
-      var x = cs.acsCenter.x + (cs.acsCenter.r * scope.handleDistRatio * Math.cos(rad)) -
-        offset;
-      var y = cs.acsCenter.y + (cs.acsCenter.r * scope.handleDistRatio * Math.sin(rad)) -
-        offset;
+      var x = jcsCenter.x + jcsCenter.r * Math.cos(rad) - jcsBallRadius;
+      var y = jcsCenter.y + jcsCenter.r * Math.sin(rad) - jcsBallRadius;
 
-      var sd360 = (shapes[scope.shape].val2Deg(scope.value) + 360) % 360;
+      var sd360 = (shapes[settings.shape].val2Deg(settings.value) + 360) % 360;
 
-      if (sd360 === d360) return;
+      if(sd360 === d360) return;
 
       var distance = Math.min((d360 + 360 - sd360) % 360, (sd360 + 360 - d360) % 360);
-      if (!distance) distance = 180;
+      if(!distance) distance = 180;
 
       var clockwise = ((d360 + 360 - sd360) % 360) === distance;
-      var r = scope.animateDuration / distance;
+      var r = settings.animateDuration / distance;
       var delay = 4;
       var unitDeg = 1;
 
-      if (r >= 4) {
+      if(r >= 4) {
         delay = parseInt(r);
-      } else if (r >= 1) {
+      } else if (r >= 1){
         unitDeg = parseInt(r) * 4;
       } else {
         unitDeg = (4 / r);
@@ -307,32 +261,18 @@
       var animate = function() {
         next = next + (clockwise ? unitDeg : -unitDeg);
         next = (next + 360) % 360;
-        if (--count <= 0) {
+        if(--count <= 0) {
           clearInterval(timer);
           onAnimate = false;
           next = d360;
         }
-        cs.funs.setValue(shapes[scope.shape].deg2Val(next));
-        scope.$apply();
-        if (!onAnimate) onSlideEnd();
+        setValue(shapes[settings.shape].deg2Val(next));
+        if(!onAnimate) onSlideEnd();
       };
+
       var timer = window.setInterval(animate, delay);
+
     };
-
-    function onSlideEnd() {
-      var scope = cs.components.scope;
-      if (typeof scope.onSlideEnd === 'function')
-        scope.onSlideEnd(scope.value);
-    }
-
-      valRange = (val - scope.max * valRange / 4) / (scope.max / 4)
-      r = Math.round(r + (rdif * valRange))
-      g = Math.round(g + (gdif * valRange))
-      b = Math.round(b + (bdif * valRange))
-      var hue = 'rgb(' + r + ',' + g + ',' + b + ')';
-
-      $('.acs-value').css({'background-color': hue});
-    }
 
     var mousemoveHandler = function(e) {
       e.stopPropagation();
@@ -340,466 +280,287 @@
       if (!mouseDown || onAnimate) return;
 
       var cursor = {
-        x: e.offsetX || e.layerX,
-        y: e.offsetY || e.layerY
+        x: e.offsetX || e.originalEvent.layerX,
+        y: e.offsetY || e.originalEvent.layerY
       };
 
-      var dx = cursor.x - cs.acsCenter.x;
-      var dy = cursor.y - cs.acsCenter.y;
+      var dx = cursor.x - jcsCenter.x;
+      var dy = cursor.y - jcsCenter.y;
 
       var rad = Math.atan2(dy, dx);
       var deg = rad * 180.0 / Math.PI;
       var d360 = (parseInt(deg < 0 ? 360.0 + deg : deg)) % 360;
-      var scope = cs.components.scope;
-      var offset = scope.borderWidth + cs.acsBallRadius;
-      //Code to snap the slider
-      var distance = Math.abs( deg - ( Math.round(deg / 90) * 90 ));
-      if( distance <= 8 ) {
-          deg = Math.round(deg / 90) * 90;
-          rad = deg * Math.PI /180.0;
-      }
-      //
 
-      var x = cs.acsCenter.x + (cs.acsCenter.r * scope.handleDistRatio * Math.cos(rad)) -
-        offset;
-      var y = cs.acsCenter.y + (cs.acsCenter.r * scope.handleDistRatio * Math.sin(rad)) -
-        offset;
+      // change coordinate
 
-      cs.components.acsIndicator.css('top', y + "px");
-      cs.components.acsIndicator.css('left', x + "px");
+      var x = jcsCenter.x + ((jcsCenter.r*settings.handleDist)/100) * Math.cos(rad) - jcsBallRadius;
+      var y = jcsCenter.y + ((jcsCenter.r*settings.handleDist)/100) * Math.sin(rad) - jcsBallRadius;
 
-      var d2v = shapes[scope.shape].deg2Val(d360);
-      var val = scope.clockwise ? d2v : (scope.max - d2v);
 
-      if (val < scope.min) val = scope.min;
-      else if (val > scope.max) val = scope.max;
+      jcsIndicator.css({
+        'top': y + "px",
+        'left': x + "px"
+      });
 
-      scope.value = scope.$$value = val;
-      genderTransition(val)
-      scope.onSlide(val);
+      var d2v = shapes[settings.shape].deg2Val(d360);
+      var val = settings.clockwise ? d2v : (settings.max - d2v);
 
-      scope.$apply();
+      if (val < settings.min) val = settings.min;
+      else if (val > settings.max) val = settings.max;
+
+      setGender(val);
+
+      if (settings.slide && $.isFunction(settings.slide)) settings.slide(slider, val);
     };
 
-    var mousedownHandler = function(e) {
-      if(cs.components.scope.disabled)
-        return;
+    jcs.on('mousedown', function(e) {
       mouseDown = true;
       e.stopPropagation();
-    };
-
-    var mouseupHandler = function(e) {
-      if(cs.components.scope.disabled)
-        return;
+    });
+    jcs.on('mouseup mouseleave', function(e) {
       mouseDown = false;
       e.stopPropagation();
-    };
+    });
+    jcs.on('mousemove', mousemoveHandler);
 
-    var clickHandler = function(e) {
-      if(cs.components.scope.disabled)
-        return;
+    jcs.on('click', function(e) {
       e.stopPropagation();
       var cursor = {
-        x: e.offsetX || e.layerX,
-        y: e.offsetY || e.layerY
+        x: e.offsetX || e.originalEvent.layerX,
+        y: e.offsetY || e.originalEvent.layerY
       };
 
-      var dx = cursor.x - cs.acsCenter.x;
-      var dy = cursor.y - cs.acsCenter.y;
-      var scope = cs.components.scope;
+      var dx = cursor.x - jcsCenter.x;
+      var dy = cursor.y - jcsCenter.y;
 
       var distance = Math.sqrt(dx * dx + dy * dy);
-      if (cs.acsRadius - distance <= cs.acsRadius * 0.1 || distance > cs.acsRadius) {
-        if (scope.animate) {
+      if (radius - distance <= jcsOuterArea || distance > radius) {
+        if(settings.animate) {
           translate(e);
         } else {
           mouseDown = true;
           mousemoveHandler(e);
           onSlideEnd();
         }
-      } else onSlideEnd();
-
+      } else  onSlideEnd();
       mouseDown = false;
+    });
+
+    jcsPanel.on('click mouseup mousemove mousedown mouseleave', function(e) {
+      jcs.trigger(e);
+    });
+
+    var buildLabel = function(value) {
+      settings.value = value;
+      return settings.formLabel ? settings.formLabel(value, settings.labelPrefix, settings.labelSuffix) : settings.labelPrefix + value + settings.labelSuffix;
     };
 
-    return {
-      touch: touchHandler,
-      mousemove: mousemoveHandler,
-      mousedown: mousedownHandler,
-      mouseup: mouseupHandler,
-      mouseleave: mouseupHandler,
-      click: clickHandler
-    };
-  })();
-
-  function circularSlider() {
-    return {
-      template: props.template,
-      restrict: 'EA',
-      transclude: true,
-      controller: CircularSliderController,
-      controllerAs: 'slider',
-      scope: {
-        min: '=?',
-        max: '=?',
-        value: '=?',
-        radius: '=?',
-        innerCircleRatio: '=?',
-        indicatorBallRatio: '=?',
-        handleDistRatio: '=?',
-        borderWidth: '=?',
-        clockwise: '=?',
-        shape: '@?',
-        touch: '=?',
-        animate: '=?',
-        animateDuration: '=?',
-        selectable: '=?',
-        disabled: '=?',
-        onSlide: '&',
-        onSlideEnd: '&',
-      },
-      link: link,
-    };
-
-    function link(scope, element, attr, controller, transcludeFn) {
-
-      if(angular.isUndefined(scope.value))
-        scope.value = scope.min;
-
-      angular.forEach(scope.$$isolateBindings, function(binding, key) {
-        if (angular.isUndefined(scope[key])) {
-          scope[key] = props.defaults[key];
-        }
-      });
-
-      // validations
-      controller.validateBindings();
-
-      // building components
-      element.addClass('acs-slider');
-      // draw & wiring events
-      redrawShape();
-
-      cs.funs = {
-        'setValue': setValue,
-      };
-
-      // assign cs scope as transclude elements scope
-      transcludeFn(scope, function (clone) {
-        angular.element(element[0].getElementsByClassName('acs-value')).empty().append(clone);
-      });
-
-      // watchers
-      scope.$watch('value', function(v) {
-        if(cs.components.scope.disabled)
-          return;
-        if(v !== scope.$$value) {
-          try {
-            cs.funs.setValue(v);
-          } catch(e) {
-            scope.value = scope.$$value;
-            throw e;
-          }
-        }
-      });
-
-      // private functions
-
-      function redrawShape() {
-        var component = getComponents();
-        var radius = getRadius();
-        shapes[scope.shape].drawShape(component, radius);
-        drawIndicatorBall(component, radius);
-
-        var $$acs = $$(component.acs);
-        var $$acsIndicator = $$(component.acsIndicator);
-        cs.acsPosition = $$acs.position();
-        cs.acsRadius = $$acs.width() / 2;
-        cs.acsBallRadius = $$acsIndicator.width() / 2;
-        cs.acsCenter = shapes[scope.shape].getCenter(cs.acsPosition, cs.acsRadius);
-
-        if (!scope.selectable) component.acsPanel.addClass('noselect');
-        else component.acsPanel.removeClass('noselect');
-
-        if (scope.touch) touchable();
-
-        angular.forEach(['mouseup', 'mousedown', 'mousemove', 'mouseleave', 'click'], function(type) {
-          element.on(type, eventHandlers[type]);
-        });
-
-        setValue(scope.value || scope.min);
-      }
-
-      function touchable() {
-        angular.forEach(["touchstart", "touchmove", "touchend", "touchcancel"], function(
-          type) {
-          element.on(type, eventHandlers.touch);
-        });
-      }
-      
-      function genderTransition(value) {
-        var r, g, b, rdif, gdif, bdif
-        var valRange
-        //green - pink
-        if (val >= 0 && val < 64) {
-          valRange = 0
-          r = 94
-          rdif = 218 - 94
-          g = 217
-          gdif = 139 - 217
-          b = 96
-          bdif = 196 - 96
-          scope.gender = "fa-venus"
-        //pink - purple
-      } else if (val >= 64 && val < 128) {
-          valRange = 1
-          r = 218
-          rdif = 152 - 218
-          g = 139
-          gdif = 43 - 139
-          b = 196
-          bdif = 227 - 196
-          scope.gender = "fa-transgender-alt"
-
-        //purple - blue
-      } else if (val >= 128 && val < 192) {
-          valRange = 2
-          r = 152
-          rdif = 112 - 152
-          g = 43
-          gdif = 113 - 43
-          b = 227
-          bdif = 199 - 227
-          scope.gender = "fa-mars"
-
-        //blue - green
-        } else {
-          valRange = 3
-          r = 112
-          rdif = 94 - 112
-          g = 113
-          gdif = 217 - 113
-          b = 199
-          bdif = 96 - 199
-          scope.gender = "fa-genderless"
-
-        }
-
-
-      function setValue(value) {
-        controller.validateBinding('value');
-
-        var val = scope.clockwise ? value : (scope.max - value);
-        var d360 = shapes[scope.shape].val2Deg(val);
-        var rad = d360 * Math.PI / 180;
-        var components = getComponents();
-        var offset = components.scope.borderWidth + cs.acsBallRadius;
-
-        var x = cs.acsCenter.x + (cs.acsCenter.r * scope.handleDistRatio * Math.cos(rad)) -
-          offset;
-        var y = cs.acsCenter.y + (cs.acsCenter.r * scope.handleDistRatio * Math.sin(rad)) -
-          offset;
-
-        components.acsIndicator.css('top', y + "px");
-        components.acsIndicator.css('left', x + "px");
-
-        scope.value = scope.$$value = value;
-        genderTransition(value)
-        if (typeof scope.onSlide === 'function')
-          scope.onSlide(value);
-      }
-
-      function drawIndicatorBall(component, radius) {
-        component.acsIndicator.css({
-          'width': (radius * scope.indicatorBallRatio) + "px",
-          'height': (radius * scope.indicatorBallRatio) + "px",
-        });
-      };
-
-      function getComponents() {
-        return cs.components ? cs.components : buildComponents();
-
-        function buildComponents() {
-          var acsPanel = element.children();
-          var acsPanelChildren = acsPanel.children();
-          var acs = angular.element(acsPanelChildren[0]);
-          var acsIndicator = angular.element(acsPanelChildren[1]);
-          var acsValue = acs.children();
-
-          var acsComponents = {
-            'acsPanel': acsPanel,
-            'acs': acs,
-            'acsIndicator': acsIndicator,
-            'acsValue': acsValue,
-            'scope': scope,
-            'ctrl': controller,
-          };
-          return (cs.components = acsComponents);
+    var setGender = function(value) {
+      var r, g, b, rdif, gdif, bdif
+      var valRange
+      var gender
+      var lowRange, highRange;
+      for (var i = 0; i < genders.length; i++) {
+        lowRange = settings.max - (settings.max * (genders.length - i) / genders.length);
+        highRange = settings.max - (settings.max * (genders.length - i - 1) / genders.length);
+        if (value >= lowRange && value < highRange) {
+          valRange = i;
+          r = genders[i].r;
+          g = genders[i].g;
+          b = genders[i].b;
+          gender = genders[i].symbol;
+          rdif = genders[i + 1 < genders.length ? i + 1 : 0].r - r;
+          gdif = genders[i + 1 < genders.length ? i + 1 : 0].g - g;
+          bdif = genders[i + 1 < genders.length ? i + 1 : 0].b - b;
+          break;
         }
       }
+      valRange = (value - settings.max * valRange / genders.length) / (settings.max / genders.length)
+      r = Math.round(r + (rdif * valRange))
+      g = Math.round(g + (gdif * valRange))
+      b = Math.round(b + (bdif * valRange))
 
-      function getRadius() {
-        return Math.abs(parseInt(scope.radius)) || props.defaults.radius;
-      }
-    }
-  }
+      var hue = 'rgb(' + r + ',' + g + ',' + b + ')';
 
-  function CircularSliderController($scope) {
-
-    function typeErrorMsg(typeName) {
-      return function(binding, value) {
-        return [binding, '(', value, ') - Expected', typeName].join(' ');
-      };
+      $('.jcs-value').css({'background-color': hue});
+      $('.jcs-value').html(buildLabel('<i class="fa ' + gender + '" ng-class="gender"></i>'));
     }
 
-    var shapes = ['Circle'
-    ];
+    var redraw = function() {
+      shapes[settings.shape].drawShape(jcsComponents, radius);
+      jcsComponents.jcsIndicator.css({
+        'width': (radius / 5) + "px",
+        'height': (radius / 5) + "px",
+      });
 
-    var transforms = {
-      integer: {
-        bindings: ['min', 'max', 'value', 'radius', 'animateDuration', 'borderWidth'],
-        transform: parseInt
-      },
-      number: {
-        bindings: ['innerCircleRatio', 'indicatorBallRatio', 'handleDistRatio'],
-        transform: parseFloat,
-      },
-      'boolean': {
-        bindings: ['touch', 'animate', 'selectable', 'clockwise', 'disabled'],
-        transform: function(o) {
-          return o === 'true' || o === true;
-        },
-      },
-      'function': {
-        bindings: ['onSlide', 'onSlideEnd'],
-        transform: function(fun) {
-          return fun ? fun : angular.noop;
-        },
-      }
+      // Re-calculate variables based on new radius
+      jcsPosition = jcs.position();
+      jcsOuterArea = jcs.outerWidth() - jcs.innerWidth();
+      jcsBallOuterArea = jcsIndicator.outerWidth() - jcsIndicator.innerWidth();
+
+      jcsRadius = (jcs.width() + jcsOuterArea) / 2;
+      jcsBallRadius = (jcsIndicator.width() + jcsBallOuterArea) / 2;
+      jcsCenter = shapes[settings.shape].getCenter(jcsPosition, jcsRadius);
+
+      setValue(settings.value || settings.min);
+
     };
 
-    var rules = {
-      type: {
-        integer: {
-          bindings: ['min', 'max', 'value', 'radius', 'animateDuration', 'borderWidth'],
-          test: toInteger,
-          onError: typeErrorMsg('integer')
-        },
-        number: {
-          bindings: ['innerCircleRatio', 'indicatorBallRatio', 'handleDistRatio'],
-          test: isFinite,
-          onError: typeErrorMsg('number')
-        },
-        'boolean': {
-          bindings: ['touch', 'animate', 'selectable', 'clockwise', 'disabled'],
-          test: truthy,
-          onError: typeErrorMsg('boolean')
-        },
-        'function': {
-          bindings: ['onSlide', 'onSlideEnd'],
-          test: angular.isFunction,
-          onError: typeErrorMsg('function')
-        },
-      },
+    var setValue = function(value) {
 
-      constraint: {
-        range: {
-          bindings: ['min', 'max'],
-          test: function minMax() {
-            return $scope.min <= $scope.max;
-          },
-          onError: function() {
-            return ['Invalid slide range: [', $scope.min, ',', $scope.max, ']'].join('');
-          },
-        },
-        value: {
-          bindings: ['value'],
-          test: function valueInRange(value) {
-            return $scope.min <= value && value <= $scope.max;
-          },
-          onError: function() {
-            return [$scope.value, '(value) out of range: [', $scope.min, ',', $scope.max,
-              ']'
-            ].join('');
-          },
-        },
-        shape: {
-          bindings: ['shape'],
-          test: function shapeSupported() {
-            return shapes.indexOf($scope.shape) !== -1;
-          },
-          onError: function() {
-            return ['Unsupported shape: ', $scope.shape].join('');
-          },
-        },
-        ratio: {
-          bindings: ['innerCircleRatio', 'handleDistRatio', 'indicatorBallRatio'],
-          test: function ratio(value) {
-            return value >= 0.0 && value <= 1.0;
-          },
-          onError: function(b, value) {
-            return [b + '(', value, ') is out of range: [0,1]'].join('');
-          },
-        },
-      }
+      if (((value | 0) !== value)) throw "Invalid input (expected integer) : " + value;
+
+      var val = settings.clockwise ? value : (settings.max - value);
+
+      var d360 = shapes[settings.shape].val2Deg(val);
+      var rad = d360 * Math.PI / 180;
+
+      var x = jcsCenter.x + ((jcsCenter.r*settings.handleDist)/100) * Math.cos(rad) - jcsBallRadius;
+      var y = jcsCenter.y + ((jcsCenter.r*settings.handleDist)/100) * Math.sin(rad) - jcsBallRadius;
+
+      jcsIndicator.css('top', y + "px");
+      jcsIndicator.css('left', x + "px");
+      jcsValue.html(buildLabel(value));
+
+      setGender(value);
+
+      if (settings.slide && $.isFunction(settings.slide)) settings.slide(slider, val);
+
     };
 
-    this.validateBindings = function(property) {
-      var props = property ? property : this.props,
-        p, binding;
+    var onSlideEnd = function() {
+      if (settings.onSlideEnd && $.isFunction(settings.onSlideEnd))
+      settings.onSlideEnd(slider, settings.value);
+    };
 
-      for (p in props) {
-        // Apply binding transformer
-        if (props[p].transform) {
-          $scope[p] = props[p].transform($scope[p]);
+    var getValue = function() {
+      return settings.value;
+    };
+
+    var getAnimate = function() {
+      return settings.animate;
+    };
+
+    var setAnimate = function(animate) {
+      settings.animate = !!animate;
+    };
+
+    var getAnimateDuration = function() {
+      return settings.animateDuration;
+    };
+
+    var setAnimateDuration = function(duration) {
+      if ((duration | 0) !== duration ||
+      duration < 0)
+      throw "Invalid animate duration(in ms) : " + duration;
+
+      settings.animateDuration = duration;
+    };
+
+    var setRadius = function(newRadius) {
+      if (isNaN(newRadius)) throw "Invalid Radius value: " + newRadius;
+      settings.radius = Math.abs(parseInt(newRadius));
+      radius = settings.radius;
+      //re-draw circles
+      redraw();
+    };
+
+    var getRadius = function() {
+      return settings.radius;
+    };
+
+    var getSupportedShapes = function() {
+      return Object.keys();
+    };
+
+    var setRange = function(min, max) {
+      if ((min | 0) !== min) throw "Invalid min value : " + min;
+      if ((max | 0) !== max) throw "Invalid max value : " + max;
+      if (max < min) throw "Min range should be less than max";
+
+      settings.min = min;
+      settings.max = max;
+      range = settings.max - settings.min + 1;
+
+      var value = settings.value;
+      if(value < min || value > max)  value = min;
+      setValue(value);
+    };
+
+    var lastTouchType = '';
+    var touchHandler = function(e) {
+      var touches = e.changedTouches;
+
+      // Ignore multi-touch
+      if (touches.length > 1) return;
+
+      var touch = touches[0];
+      var target = $(touch.target);
+
+      if(!target.hasClass('jcs')) return;
+
+      var offset = target.offset();
+      var width = target.width();
+      var height = target.height();
+
+      var clientX = touch.clientX;
+      var clientY = touch.clientY;
+
+      if( clientX < offset.left || clientX > width + offset.left ||
+        clientY < offset.top  || clientY > height + offset.top)
+        return;
+
+        var events = ["touchstart", "touchmove", "touchend", "touchcancel"];
+        var mouseEvents = ["mousedown", "mousemove", "mouseup", "mouseleave"];
+        var ev = events.indexOf(e.type);
+
+        if (ev === -1) return;
+
+        var type = mouseEvents[ev];
+        if (e.type === events[2] && lastTouchType === events[0]) {
+          type = "click";
         }
-        // test binding types and constraints
-        props[p].tests.forEach(function(t) {
-          if (!t.test($scope[p])) {
-            throw t.onError(p, $scope[p]);
-          }
+
+
+        var simulatedEvent = document.createEvent("MouseEvent");
+        simulatedEvent.initMouseEvent(type, true, true, window, 1,
+          touch.screenX, touch.screenY,
+          touch.clientX, touch.clientY, false,
+          false, false, false, 0, null);
+          touch.target.dispatchEvent(simulatedEvent);
+          e.preventDefault();
+          lastTouchType = e.type;
+        };
+
+        // bind touch events to mouse events
+        if (settings.touch) {
+
+          document.addEventListener("touchstart", touchHandler, true);
+          document.addEventListener("touchmove", touchHandler, true);
+          document.addEventListener("touchend", touchHandler, true);
+          document.addEventListener("touchcancel", touchHandler, true);
+
+        }
+
+        if (!settings.selectable) jcsPanel.addClass('noselect');
+
+        // default position
+        setValue(settings.value || settings.min);
+
+        return $.extend({}, this, {
+          "setValue": setValue,
+          "getValue": getValue,
+          "getSupportedShapes": getSupportedShapes,
+          "setRadius": setRadius,
+          "getRadius": getRadius,
+          "setRange": setRange,
+          "getAnimateDuration": getAnimateDuration,
+          "setAnimateDuration": setAnimateDuration,
+          "setAnimate": setAnimate,
+          "getAnimate": getAnimate,
+
         });
-      }
-    };
 
-    this.validateBinding = function(binding) {
-      if (angular.isUndefined(binding)) return;
-      var property = {};
-      property[binding] = this.props[binding];
-      this.validateBindings(property);
-    };
+      };
 
-    function init(controller) {
-
-      // build constraints & transforms
-      angular.forEach(rules, function(category, rule) {
-        angular.forEach(category, function(action, name) {
-          var bindings = action.bindings;
-          bindings.map(function(binding) {
-            controller[binding] = controller[binding] || {
-              tests: []
-            };
-            controller[binding].tests.push({
-              test: action.test,
-              onError: action.onError
-            });
-          });
-        });
-      });
-
-      angular.forEach(transforms, function(transformer) {
-        angular.forEach(transformer.bindings, function(binding) {
-          controller[binding].transform = transformer.transform;
-        })
-      });
-    }
-
-    init(this.props = {});
-  }
-
-  CircularSliderController.$inject = ['$scope'];
-
-  angular.module('angular.circular-slider', [])
-    .directive('circularSlider', circularSlider);
-
-}(window, window.angular));
+    }(jQuery));
