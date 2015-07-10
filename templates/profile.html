@@ -22,7 +22,7 @@
       </div>
     </div>
   </form>
-  <form ng-submit="updateUser(username)">
+  <form ng-submit="updateUser()">
     <div class="form-group">
       <div id="slider"></div>
     </div>
@@ -41,7 +41,9 @@
         </auto-complete>
       </tags-input>
     </div>
+    <input class="btn btn-success btn-lg btn-block" type="submit" value="Save">
   </form>
+  <hr class="divider" />
   <form>
     <div class="form-group">
       <div class="input-group" ng-show="passwordToggle">

@@ -350,9 +350,9 @@ SOFTWARE.
       jcs.trigger(e);
     });
 
-    var buildLabel = function(value) {
+    var buildLabel = function(value, html) {
       settings.value = value;
-      return settings.formLabel ? settings.formLabel(value, settings.labelPrefix, settings.labelSuffix) : settings.labelPrefix + value + settings.labelSuffix;
+      return settings.formLabel ? settings.formLabel(html, settings.labelPrefix, settings.labelSuffix) : settings.labelPrefix + html + settings.labelSuffix;
     };
 
     var setGender = function(value) {
@@ -383,7 +383,7 @@ SOFTWARE.
       var hue = 'rgb(' + r + ',' + g + ',' + b + ')';
 
       $('.jcs-value').css({'background-color': hue});
-      $('.jcs-value').html(buildLabel('<i class="fa ' + gender + '" ng-class="gender"></i>'));
+      $('.jcs-value').html(buildLabel(value, '<i class="fa ' + gender + '" ng-class="gender"></i>'));
     }
 
     var redraw = function() {
@@ -420,7 +420,7 @@ SOFTWARE.
 
       jcsIndicator.css('top', y + "px");
       jcsIndicator.css('left', x + "px");
-      jcsValue.html(buildLabel(value));
+      jcsValue.html(buildLabel(value, ''));
 
       setGender(value);
 

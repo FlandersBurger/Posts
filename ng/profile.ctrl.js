@@ -3,7 +3,7 @@ angular.module('app')
 
   var genderSlider = $('#slider').CircularSlider({
       radius: 50,
-      innerCircleRatio: '0.5',
+      innerCircleRatio: '0.6',
       handleDist: 100,
       min: 0,
       max: 359,
@@ -77,8 +77,12 @@ angular.module('app')
     })
   }
 
-  $scope.updateUser = function (username) {
-
+  $scope.updateUser = function () {
+    var gender = genderSlider.getValue()
+    UserSvc.updateUser(gender)
+    .then(function (response) {
+      console.log(response)
+    })
   }
 
 

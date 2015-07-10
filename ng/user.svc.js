@@ -22,6 +22,12 @@ angular.module('app')
     })
   }
 
+  svc.updateUser = function (gender) {
+    return $http.post('/api/users/update', {
+      gender: gender
+    })
+  }
+
   svc.checkPassword = function (password) {
     return $http.post('/api/users/passwordcheck', {
       password: password
