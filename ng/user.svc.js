@@ -14,21 +14,29 @@ angular.module('app')
 
   svc.login = function (username, password) {
     return $http.post('/api/sessions', {
-      username: username, password: password
+      username: username,
+      password: password
     }).then(function (response) {
       window.localStorage.token = response.data
       return svc.setToken(response.data)
     })
   }
 
+  svc.checkPassword = function (password) {
+    return $http.post('/api/users/passwordcheck', {
+      password: password
+    })
+  }
+
   svc.changePassword = function (oldPassword, newPassword) {
-    $http.post('/api/users/password', {
-      oldPassword: oldPassword, newPassword : newPassword
+    return $http.post('/api/users/passwordchange', {
+      oldPassword: oldPassword,
+      newPassword : newPassword
     })
   }
 
   svc.changeUsername = function (newUsername) {
-    $http.post('/api/users/username', {
+    return $http.post('/api/users/username', {
       newUsername: newUsername
     })
   }
@@ -40,7 +48,8 @@ angular.module('app')
 
   svc.createUser = function (username, password) {
     return $http.post('/api/users', {
-      username: username, password: password
+      username: username,
+      password: password
     }).then(function () {
       return svc.login(username, password)
     })

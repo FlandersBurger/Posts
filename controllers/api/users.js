@@ -16,7 +16,7 @@ router.get('/', function (req, res, next) {
 })
 
 router.post('/', function (req, res, next) {
-  var user = new User({username: req.body.username})
+  var user = new User({username: req.body.username, username_lower: req.body.username.toLowerCase()})
   bcrypt.genSalt(10, function(err, salt) {
     bcrypt.hash(req.body.password, salt, function (err, hash) {
       user.password = hash
@@ -24,24 +24,39 @@ router.post('/', function (req, res, next) {
         if (err) {
           throw next(err)
         }
-        res.send(201)
+        res.sendStatus(201)
       })
     })
   })
 })
 
-router.post('/password', function (req, res, next) {
+router.post('/passwordcheck', function (req, res, next) {
   if (!req.headers['x-auth']) {
-    return res.send(401)
+    return res.sendStatus(401)
   }
   var auth = jwt.decode(req.headers['x-auth'], config.secret)
   User.findOne({_id: auth.userid})
   .select('password')
-  .select('username')
+  .exec(function (err, user) {
+    bcrypt.compare(req.body.password, user.password, function (err, valid) {
+      if (err) { return next(err) }
+      if (!valid) { return res.sendStatus(401) }
+      res.sendStatus(200)
+    })
+  })
+})
+
+router.post('/passwordchange', function (req, res, next) {
+  if (!req.headers['x-auth']) {
+    return res.sendStatus(401)
+  }
+  var auth = jwt.decode(req.headers['x-auth'], config.secret)
+  User.findOne({_id: auth.userid})
+  .select('username password')
   .exec(function (err, user) {
     bcrypt.compare(req.body.oldPassword, user.password, function (err, valid) {
       if (err) { return next(err) }
-      if (!valid) { return res.send(401) }
+      if (!valid) { return res.sendStatus(401) }
       bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(req.body.newPassword, salt, function (err, hash) {
           user.password = hash
@@ -50,7 +65,7 @@ router.post('/password', function (req, res, next) {
               throw next(err)
             }
             console.log(user.username + ' changed their password')
-            res.send(200)
+            res.sendStatus(200)
           })
         })
       })
@@ -60,27 +75,30 @@ router.post('/password', function (req, res, next) {
 
 router.post('/username', function (req, res, next) {
   if (!req.headers['x-auth']) {
-    return res.send(401)
+    return res.sendStatus(401)
   }
   var auth = jwt.decode(req.headers['x-auth'], config.secret)
   User.findOne({_id: auth.userid})
-  .select('username')
+  .select('username usernameLC')
   .exec(function (err, user) {
-    User.findOne({username: req.body.newUsername}, function (err, user2) {
+    User.findOne({username_lower: req.body.newUsername.toLowerCase()}, function (err, user2) {
       if (err) { return next(err) }
       if (user2) {
-        if (user2.id != auth.userid) {
-          return res.send(400)
+        if (user2.id !== auth.userid) {
+          console.log(req.body.newUsername + ' already taken');
+          return res.sendStatus(304)
         }
       }
-    })
-    user.username = req.body.newUsername
-    user.save(function (err, user) {
-      if (err) {
-        throw next(err)
-      }
       console.log(user.username + ' changed their name to ' + req.body.newUsername)
-      res.send(200)
+      console.log(user.username_lower);
+      user.username = req.body.newUsername
+      user.usernameLC = req.body.newUsername.toLowerCase()
+      user.save(function (err, user) {
+        if (err) {
+          throw next(err)
+        }
+        res.sendStatus(200)
+      })
     })
   })
 })

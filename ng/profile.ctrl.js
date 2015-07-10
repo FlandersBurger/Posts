@@ -21,12 +21,66 @@ angular.module('app')
       formLabel: undefined
   });
 
-  $scope.custom = true;
+  $scope.usernameToggle = true;
+  $scope.passwordToggle = true;
 
-  $scope.toggleCustom = function() {
-      $scope.custom = $scope.custom === false ? true: false;
+  $scope.toggleUsername = function() {
+      $scope.usernameToggle = !$scope.usernameToggle;
       $scope.newUsername = $scope.currentUser.username
   };
+
+  $scope.togglePassword = function() {
+      $scope.passwordToggle = !$scope.passwordToggle;
+  };
+
+  $scope.checkPassword = function (password) {
+    if (password) {
+      UserSvc.checkPassword(password)
+      .then(function (response) {
+        if (response.status == 200) {
+          $scope.togglePassword()
+        } else {
+          var originalBg = $(".password").css("backgroundColor")
+          $(".password").animate({ backgroundColor: "#FFB6C1" }, 200).animate({ backgroundColor: originalBg }, 200);
+        }
+      })
+    }
+  }
+
+  $scope.changePassword = function (oldPassword, newPassword, confirmPassword) {
+    if (newPassword) {
+      if (newPassword == confirmPassword) {
+        UserSvc.changePassword(oldPassword, newPassword)
+        .then(function (response) {
+          $scope.oldPassword = null;
+          $scope.newPassword = null;
+          $scope.confirmPassword = null;
+          $scope.togglePassword()
+        })
+      } else {
+        var originalBg = $(".password").css("backgroundColor")
+        $(".password").animate({ backgroundColor: "#FFB6C1" }, 200).animate({ backgroundColor: originalBg }, 200);
+      }
+    }
+  }
+
+  $scope.changeUsername = function (username) {
+    UserSvc.changeUsername(username)
+    .then(function (response) {
+      console.log(response)
+      if (response.status == 200) {
+        console.log('Username changed successfully to ' + username);
+        $scope.currentUser.username = username
+      } else if (response.status == 304) {
+        console.log(username + ' is already taken');
+      }
+    })
+  }
+
+  $scope.updateUser = function (username) {
+
+  }
+
 
   $scope.tags = [
     { name: "Brazil", flag: "flag-bz" },
@@ -37,7 +91,7 @@ angular.module('app')
 
   $scope.loadCountries = function($query) {
     var countries = [
-      { "name": "Andorra", "flag": "flag-ad" },
+      { "name": "Andorra", "flag": "flag-ad", "tidbit": "" },
       { "name": "United Arab Emirates", "flag": "flag-ae" },
       { "name": "Afghanistan", "flag": "flag-af" },
       { "name": "Antigua and Barbuda", "flag": "flag-ag" },
@@ -291,25 +345,5 @@ angular.module('app')
       return country.name.toLowerCase().indexOf($query.toLowerCase()) != -1;
     });
   };
-
-  $scope.changePassword = function (oldPassword, newPassword, confirmPassword) {
-    if (newPassword == confirmPassword) {
-      UserSvc.changePassword(oldPassword, newPassword)
-      $scope.oldPassword = null;
-      $scope.newPassword = null;
-      $scope.confirmPassword = null;
-    } else {
-      var originalBg = $(".password").css("backgroundColor")
-      $(".password").animate({ backgroundColor: "#FFB6C1" }, 200).animate({ backgroundColor: originalBg }, 200);
-    }
-  }
-
-  $scope.changeUsername = function (username) {
-    UserSvc.changeUsername(username)
-  }
-
-  $scope.updateUser = function (username) {
-
-  }
 
 })

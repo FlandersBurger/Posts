@@ -13,5 +13,4 @@ angular.module('app')
       $(".password").animate({ backgroundColor: "#FFB6C1" }, 200).animate({ backgroundColor: originalBg }, 200);
     }
   }
-
 })

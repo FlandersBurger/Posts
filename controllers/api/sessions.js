@@ -5,7 +5,7 @@ var jwt = require('jwt-simple')
 var config = require('../../config')
 
 router.post('/', function (req, res, next) {
-  User.findOne({username: req.body.username})
+  User.findOne({usernameLC: req.body.username.toLowerCase()})
   .select('password')
   .select('username')
   .exec(function (err, user) {
