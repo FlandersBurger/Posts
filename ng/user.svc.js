@@ -22,9 +22,10 @@ angular.module('app')
     })
   }
 
-  svc.updateUser = function (gender) {
+  svc.updateUser = function (gender, flags) {
     return $http.post('/api/users/update', {
-      gender: gender
+      gender: gender,
+      flags: flags
     })
   }
 

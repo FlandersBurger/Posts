@@ -170,14 +170,14 @@ SOFTWARE.
         'g' : 139,
         'b' : 196,
         'symbol' : 'fa-venus'
-      },
+      },/*
       {
         'name' : 'genderless',
         'r' : 94,
         'g' : 217,
         'b' : 96,
         'symbol' : 'fa-genderless'
-      }
+      }*/
     ]
 
     var jcsPanel = $('<div class="jcs-panel"><div class="jcs"><span class="jcs-value"></span></div><div class="jcs-indicator"> </div></div>');

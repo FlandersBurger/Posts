@@ -3,7 +3,7 @@ angular.module('app')
 
   var genderSlider = $('#slider').CircularSlider({
       radius: 50,
-      innerCircleRatio: '0.6',
+      innerCircleRatio: '0.8',
       handleDist: 100,
       min: 0,
       max: 359,
@@ -21,16 +21,23 @@ angular.module('app')
       formLabel: undefined
   });
 
+  UserSvc.getUser()
+  .then(function () {
+    genderSlider.setValue($scope.currentUser.gender);
+    $scope.tags = $scope.currentUser.flags;
+  });
+
   $scope.usernameToggle = true;
   $scope.passwordToggle = true;
 
   $scope.toggleUsername = function() {
-      $scope.usernameToggle = !$scope.usernameToggle;
-      $scope.newUsername = $scope.currentUser.username
+    genderSlider.setValue($scope.currentUser.gender);
+    $scope.usernameToggle = !$scope.usernameToggle;
+    $scope.newUsername = $scope.currentUser.username;
   };
 
   $scope.togglePassword = function() {
-      $scope.passwordToggle = !$scope.passwordToggle;
+    $scope.passwordToggle = !$scope.passwordToggle;
   };
 
   $scope.checkPassword = function (password) {
@@ -67,7 +74,6 @@ angular.module('app')
   $scope.changeUsername = function (username) {
     UserSvc.changeUsername(username)
     .then(function (response) {
-      console.log(response)
       if (response.status == 200) {
         console.log('Username changed successfully to ' + username);
         $scope.currentUser.username = username
@@ -79,7 +85,8 @@ angular.module('app')
 
   $scope.updateUser = function () {
     var gender = genderSlider.getValue()
-    UserSvc.updateUser(gender)
+    var flags = $scope.tags
+    UserSvc.updateUser(gender, flags)
     .then(function (response) {
       console.log(response)
     })
@@ -87,7 +94,7 @@ angular.module('app')
 
 
   $scope.tags = [
-    { name: "Brazil", flag: "flag-bz" },
+    { name: "Brazil", flag: "flag-br" },
     { name: "Italy", flag: "flag-it" },
     { name: "Spain", flag: "flag-es" },
     { name: "Germany", flag: "flag-de" }

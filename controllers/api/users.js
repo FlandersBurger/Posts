@@ -16,7 +16,7 @@ router.get('/', function (req, res, next) {
 })
 
 router.post('/', function (req, res, next) {
-  var user = new User({username: req.body.username, username_lower: req.body.username.toLowerCase()})
+  var user = new User({username: req.body.username, usernameLC: req.body.username.toLowerCase()})
   bcrypt.genSalt(10, function(err, salt) {
     bcrypt.hash(req.body.password, salt, function (err, hash) {
       user.password = hash
@@ -54,14 +54,16 @@ router.post('/update', function (req, res, next) {
   User.findOne({_id: auth.userid})
   .select('username')
   .select('gender')
+  .select('flags')
   .exec(function (err, user) {
     if (err) { return next(err) }
     user.gender = req.body.gender
+    user.flags = req.body.flags
     user.save(function (err, user) {
       if (err) {
         throw next(err)
       }
-      console.log(user.username + ' changed their password')
+      console.log(user.username + ' updated their profile')
       res.sendStatus(200)
     })
   })
