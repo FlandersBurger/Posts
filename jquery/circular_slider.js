@@ -170,7 +170,7 @@ SOFTWARE.
         'g' : 139,
         'b' : 196,
         'symbol' : 'fa-venus'
-      },/*
+      }/*,
       {
         'name' : 'genderless',
         'r' : 94,
@@ -358,17 +358,32 @@ SOFTWARE.
     var setGender = function(value) {
       var r, g, b, rdif, gdif, bdif
       var valRange
-      var gender
-      var lowRange, highRange;
+      var gender, genderHTML, genderPercentage
+      var lowRange, highRange, midRange
       for (var i = 0; i < genders.length; i++) {
         lowRange = settings.max - (settings.max * (genders.length - i) / genders.length);
         highRange = settings.max - (settings.max * (genders.length - i - 1) / genders.length);
+        midRange = (highRange - lowRange) / 2;
         if (value >= lowRange && value < highRange) {
           valRange = i;
           r = genders[i].r;
           g = genders[i].g;
           b = genders[i].b;
           gender = genders[i].symbol;
+          genderPercentage = (100 - Math.round((value - lowRange) / midRange * 5) * 10)
+          if (genderPercentage == 100) {
+            $('.jcs-value').css('line-height', '3em')
+            genderHTML = '100% <i class="fa ' + gender + '" ng-class="gender"></i>'
+          } else if (genderPercentage == 0) {
+            $('.jcs-value').css('line-height', '3em')
+            genderHTML = '100% <i class="fa ' + genders[i + 1 < genders.length ? i + 1 : 0].symbol + '" ng-class="gender"></i>'
+          } else {
+            $('.jcs-value').css({
+            	'line-height': '1.5em'
+            })
+            genderHTML = genderPercentage + '% <i class="fa ' + gender + '" ng-class="gender"></i>'
+            genderHTML = genderHTML + (100 - genderPercentage) + '% <i class="fa ' + genders[i + 1 < genders.length ? i + 1 : 0].symbol + '" ng-class="gender"></i>'
+          }
           rdif = genders[i + 1 < genders.length ? i + 1 : 0].r - r;
           gdif = genders[i + 1 < genders.length ? i + 1 : 0].g - g;
           bdif = genders[i + 1 < genders.length ? i + 1 : 0].b - b;
@@ -383,7 +398,7 @@ SOFTWARE.
       var hue = 'rgb(' + r + ',' + g + ',' + b + ')';
 
       $('.jcs-value').css({'background-color': hue});
-      $('.jcs-value').html(buildLabel(value, '<i class="fa ' + gender + '" ng-class="gender"></i>'));
+      $('.jcs-value').html(buildLabel(value, genderHTML));
     }
 
     var redraw = function() {

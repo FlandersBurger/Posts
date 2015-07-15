@@ -26,6 +26,8 @@ angular.module('app')
     return $http.post('/api/users/update', {
       gender: gender,
       flags: flags
+    }).then(function () {
+      return svc.getUser()
     })
   }
 

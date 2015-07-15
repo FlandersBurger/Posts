@@ -16,6 +16,10 @@ angular.module('app')
     $scope.currentUser = user
   })
 
+  $scope.$on('update', function (_, user) {
+    $scope.currentUser = user
+  })
+
   $scope.logout = function () {
     UserSvc.logout()
     $scope.loggedIn = false

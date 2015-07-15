@@ -3,7 +3,7 @@ angular.module('app')
 
   var genderSlider = $('#slider').CircularSlider({
       radius: 50,
-      innerCircleRatio: '0.8',
+      innerCircleRatio: '0.9',
       handleDist: 100,
       min: 0,
       max: 359,
@@ -21,17 +21,17 @@ angular.module('app')
       formLabel: undefined
   });
 
-  UserSvc.getUser()
-  .then(function () {
+  if (!$scope.currentUser) {
+    $location.path('/');
+  } else {
     genderSlider.setValue($scope.currentUser.gender);
     $scope.tags = $scope.currentUser.flags;
-  });
+  }
 
   $scope.usernameToggle = true;
   $scope.passwordToggle = true;
 
   $scope.toggleUsername = function() {
-    genderSlider.setValue($scope.currentUser.gender);
     $scope.usernameToggle = !$scope.usernameToggle;
     $scope.newUsername = $scope.currentUser.username;
   };
@@ -88,17 +88,13 @@ angular.module('app')
     var flags = $scope.tags
     UserSvc.updateUser(gender, flags)
     .then(function (response) {
-      console.log(response)
+      $scope.$emit('update', response.data)
     })
   }
-
-
+  /*
   $scope.tags = [
-    { name: "Brazil", flag: "flag-br" },
-    { name: "Italy", flag: "flag-it" },
-    { name: "Spain", flag: "flag-es" },
-    { name: "Germany", flag: "flag-de" }
-  ];
+    { name: "Canada", flag: "flag-ca" }
+  ];*/
 
   $scope.loadCountries = function($query) {
     var countries = [
