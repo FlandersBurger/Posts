@@ -30,7 +30,7 @@ router.post('/', function (req, res, next) {
   })
 })
 
-router.post('/passwordcheck', function (req, res, next) {
+router.get('/password', function (req, res, next) {
   if (!req.headers['x-auth']) {
     return res.sendStatus(401)
   }
@@ -38,7 +38,7 @@ router.post('/passwordcheck', function (req, res, next) {
   User.findOne({_id: auth.userid})
   .select('password')
   .exec(function (err, user) {
-    bcrypt.compare(req.body.password, user.password, function (err, valid) {
+    bcrypt.compare(req.query.password, user.password, function (err, valid) {
       if (err) { return next(err) }
       if (!valid) { return res.sendStatus(401) }
       res.sendStatus(200)
@@ -70,7 +70,7 @@ router.post('/update', function (req, res, next) {
 })
 
 
-router.post('/passwordchange', function (req, res, next) {
+router.post('/password', function (req, res, next) {
   if (!req.headers['x-auth']) {
     return res.sendStatus(401)
   }
@@ -116,7 +116,6 @@ router.post('/username', function (req, res, next) {
         }
       }
       console.log(user.username + ' changed their name to ' + req.body.newUsername)
-      console.log(user.username_lower);
       user.username = req.body.newUsername
       user.usernameLC = req.body.newUsername.toLowerCase()
       user.save(function (err, user) {

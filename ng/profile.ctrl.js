@@ -37,6 +37,9 @@ angular.module('app')
   };
 
   $scope.togglePassword = function() {
+    $scope.oldPassword = null;
+    $scope.newPassword = null;
+    $scope.confirmPassword = null;
     $scope.passwordToggle = !$scope.passwordToggle;
   };
 
@@ -44,7 +47,7 @@ angular.module('app')
     if (password) {
       UserSvc.checkPassword(password)
       .then(function (response) {
-        if (response.status == 200) {
+        if (response.status === 200) {
           $scope.togglePassword()
         } else {
           var originalBg = $(".password").css("backgroundColor")
@@ -59,9 +62,6 @@ angular.module('app')
       if (newPassword == confirmPassword) {
         UserSvc.changePassword(oldPassword, newPassword)
         .then(function (response) {
-          $scope.oldPassword = null;
-          $scope.newPassword = null;
-          $scope.confirmPassword = null;
           $scope.togglePassword()
         })
       } else {
@@ -75,6 +75,10 @@ angular.module('app')
     UserSvc.changeUsername(username)
     .then(function (response) {
       if (response.status == 200) {
+        $scope.$emit('popup', {
+          message: 'Saved!',
+          type: 'alert-success'
+        })
         console.log('Username changed successfully to ' + username);
         $scope.currentUser.username = username
       } else if (response.status == 304) {
@@ -91,10 +95,6 @@ angular.module('app')
       $scope.$emit('update', response.data)
     })
   }
-  /*
-  $scope.tags = [
-    { name: "Canada", flag: "flag-ca" }
-  ];*/
 
   $scope.loadCountries = function($query) {
     var countries = [

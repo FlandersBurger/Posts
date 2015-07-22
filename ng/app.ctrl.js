@@ -20,6 +20,18 @@ angular.module('app')
     $scope.currentUser = user
   })
 
+  $scope.$on('popup', function(_, message) {
+    $scope.popupMessage = message.message
+    $scope.popupType = message.type
+    $("#appPopup")
+    .css({"top": 0})
+    .fadeIn(200)
+    .delay(500)
+    .fadeOut(1000, function() {
+      $("#appPopup").hide().css({"top": -100})
+    })
+  })
+
   $scope.logout = function () {
     UserSvc.logout()
     $scope.loggedIn = false

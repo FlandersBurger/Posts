@@ -32,13 +32,15 @@ angular.module('app')
   }
 
   svc.checkPassword = function (password) {
-    return $http.post('/api/users/passwordcheck', {
-      password: password
+    return $http.get('/api/users/password', {
+      params: {
+        password: password
+      }
     })
   }
 
   svc.changePassword = function (oldPassword, newPassword) {
-    return $http.post('/api/users/passwordchange', {
+    return $http.post('/api/users/password', {
       oldPassword: oldPassword,
       newPassword : newPassword
     })
