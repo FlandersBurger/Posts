@@ -2,7 +2,6 @@ angular.module('app')
 .config(function ($stateProvider, $urlRouterProvider, $locationProvider) {
 
   $urlRouterProvider.otherwise('/home');
-  $locationProvider.html5Mode(true)
 
   $stateProvider
   .state('home', {
@@ -26,5 +25,6 @@ angular.module('app')
     templateUrl: 'profile.html'
   })
 
+  $locationProvider.html5Mode(true)
 
 })
