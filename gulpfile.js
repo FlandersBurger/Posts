@@ -16,5 +16,4 @@ gulp.task('build', [
   'css'
   , 'js'
   , 'jquery'
-  , 'build:server'
 ])
