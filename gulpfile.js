@@ -11,3 +11,10 @@ gulp.task('dev', [
   , 'watch:jquery'
   , 'dev:server'
 ])
+
+gulp.task('build', [
+  'css'
+  , 'js'
+  , 'jquery'
+  , 'build:server'
+])
