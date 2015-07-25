@@ -8,11 +8,3 @@ gulp.task('dev:server', function () {
     ignore: ['ng*', 'gulp*', 'assets*']
   })
 })
-
-gulp.task('build:server', function () {
-  nodemon({
-    script: 'server.js',
-    ext: 'js',
-    ignore: ['ng*', 'gulp*', 'assets*']
-  })
-})
