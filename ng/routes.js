@@ -1,10 +1,10 @@
 angular.module('app')
-.config(function ($stateProvider, $urlRouterProvider) {
+.config(function ($stateProvider, $urlRouterProvider, $locationProvider) {
 
   $urlRouterProvider.otherwise('/home');
+  $locationProvider.html5Mode(true)
 
   $stateProvider
-
   .state('home', {
     url: '/home',
     controller: 'PostsCtrl',
