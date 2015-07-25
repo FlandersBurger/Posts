@@ -20,6 +20,8 @@ router.post('/', function (req, res, next) {
   bcrypt.genSalt(10, function(err, salt) {
     bcrypt.hash(req.body.password, salt, function (err, hash) {
       user.password = hash
+      user.gender = 1
+      user.flags = []
       user.save(function (err, user) {
         if (err) {
           throw next(err)

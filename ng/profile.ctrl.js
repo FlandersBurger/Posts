@@ -37,7 +37,6 @@ angular.module('app')
   };
 
   $scope.togglePassword = function() {
-    $scope.oldPassword = null;
     $scope.newPassword = null;
     $scope.confirmPassword = null;
     $scope.passwordToggle = !$scope.passwordToggle;
@@ -47,12 +46,10 @@ angular.module('app')
     if (password) {
       UserSvc.checkPassword(password)
       .then(function (response) {
-        if (response.status === 200) {
-          $scope.togglePassword()
-        } else {
-          var originalBg = $(".password").css("backgroundColor")
-          $(".password").animate({ backgroundColor: "#FFB6C1" }, 200).animate({ backgroundColor: originalBg }, 200);
-        }
+        $scope.togglePassword()
+      }, function () {
+        var originalBg = $(".password").css("backgroundColor")
+        $(".password").animate({ backgroundColor: "#FFB6C1" }, 200).animate({ backgroundColor: originalBg }, 200);
       })
     }
   }
@@ -62,7 +59,17 @@ angular.module('app')
       if (newPassword == confirmPassword) {
         UserSvc.changePassword(oldPassword, newPassword)
         .then(function (response) {
+          $scope.$emit('popup', {
+            message: 'Password Changed',
+            type: 'alert-success'
+          })
+          $scope.oldPassword = null;
           $scope.togglePassword()
+        }, function () {
+          $scope.$emit('popup', {
+            message: 'Password Change Failed',
+            type: 'alert-danger'
+          })
         })
       } else {
         var originalBg = $(".password").css("backgroundColor")
@@ -74,16 +81,16 @@ angular.module('app')
   $scope.changeUsername = function (username) {
     UserSvc.changeUsername(username)
     .then(function (response) {
-      if (response.status == 200) {
-        $scope.$emit('popup', {
-          message: 'Saved!',
-          type: 'alert-success'
-        })
-        console.log('Username changed successfully to ' + username);
-        $scope.currentUser.username = username
-      } else if (response.status == 304) {
-        console.log(username + ' is already taken');
-      }
+      $scope.$emit('popup', {
+        message: 'Username changed to ' + username,
+        type: 'alert-success'
+      })
+      $scope.currentUser.username = username
+    }, function(response) {
+      $scope.$emit('popup', {
+        message: username + ' already in use',
+        type: 'alert-danger'
+      })
     })
   }
 
@@ -93,6 +100,10 @@ angular.module('app')
     UserSvc.updateUser(gender, flags)
     .then(function (response) {
       $scope.$emit('update', response.data)
+      $scope.$emit('popup', {
+        message: username + ' profile updated',
+        type: 'alert-success'
+      })
     })
   }
 

@@ -13,6 +13,7 @@ angular.module('app')
         type: 'alert-danger'
       })
     })
+
   }
 
 })
