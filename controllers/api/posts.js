@@ -30,11 +30,12 @@ router.post('/', function (req, res, next) {
   post.save(function (err, post) {
     if (err) { return next(err) }
     pubsub.publish('new_post', post)
-    pubsub.subscribe('new_post', function(post) {
-      websockets.broadcast('new_post', post)
-    })
     res.status(201).json(post)
   })
+})
+
+pubsub.subscribe('new_post', function (post) {
+  websockets.broadcast('new_post', post)
 })
 
 module.exports = router
