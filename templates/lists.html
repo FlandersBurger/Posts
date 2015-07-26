@@ -1,0 +1,12 @@
+<div class="container">
+  <form role="form">
+    <div class="form-group">
+      <input type="text" ng-model="searchText" class="form-control" placeholder="Search">
+    </div>
+  </form>
+  <ul class="list-group">
+    <li ng-repeat="category in categories | orderBy:'+category' | filter:searchText" class="list-group-item">
+      <strong>{{ category }}</strong>
+    </li>
+  </ul>
+</div>

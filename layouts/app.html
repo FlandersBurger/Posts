@@ -23,7 +23,7 @@
 
   <link rel="icon"
         type="image/png"
-        href="images/toppriority.png">
+        href="toppriority.png">
 </head>
 
 <body ng-app="app" ng-controller="AppCtrl">
@@ -36,13 +36,14 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" ui-sref="home">Posts</a>
+        <a class="navbar-brand" ui-sref="home">Top Priority</a>
       </div>
       <div class="collapse navbar-collapse" id="postsNavbar">
         <ul class="nav navbar-nav">
           <li><a ui-sref="home"><i class="fa fa-lg fa-comment"></i></a></li>
           <li ng-hide="loggedIn"><a ui-sref="register"><i class="fa fa-lg fa-user-plus"></i></a></li>
           <li ng-hide="loggedIn"><a ui-sref="login"><i class="fa fa-lg fa-sign-in"></i></a></li>
+          <li><a ui-sref="lists"><i class="fa fa-lg fa-list"></i></a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li ng-if="currentUser"><a ui-sref="profile">{{currentUser.username}}</a></li>

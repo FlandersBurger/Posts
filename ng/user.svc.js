@@ -22,8 +22,8 @@ angular.module('app')
     })
   }
 
-  svc.updateUser = function (gender, flags) {
-    return $http.post('/api/users/update', {
+  svc.updateUser = function (user, gender, flags) {
+    return $http.post('/api/users/' + user, {
       gender: gender,
       flags: flags
     }).then(function () {
@@ -31,16 +31,14 @@ angular.module('app')
     })
   }
 
-  svc.checkPassword = function (password) {
-    return $http.get('/api/users/password', {
-      params: {
-        password: password
-      }
+  svc.checkPassword = function (user, password) {
+    return $http.post('/api/users/' + user + '/verification', {
+      password: password
     })
   }
 
-  svc.changePassword = function (oldPassword, newPassword) {
-    return $http.post('/api/users/password', {
+  svc.changePassword = function (user, oldPassword, newPassword) {
+    return $http.post('/api/users/' + user + '/password', {
       oldPassword: oldPassword,
       newPassword : newPassword
     })

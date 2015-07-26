@@ -44,7 +44,8 @@ angular.module('app')
 
   $scope.checkPassword = function (password) {
     if (password) {
-      UserSvc.checkPassword(password)
+      var user = $scope.currentUser._id
+      UserSvc.checkPassword(user, password)
       .then(function (response) {
         $scope.togglePassword()
       }, function () {
@@ -57,7 +58,8 @@ angular.module('app')
   $scope.changePassword = function (oldPassword, newPassword, confirmPassword) {
     if (newPassword) {
       if (newPassword == confirmPassword) {
-        UserSvc.changePassword(oldPassword, newPassword)
+        var user = $scope.currentUser._id
+        UserSvc.changePassword(user, oldPassword, newPassword)
         .then(function (response) {
           $scope.$emit('popup', {
             message: 'Password Changed',
@@ -97,15 +99,14 @@ angular.module('app')
   $scope.updateUser = function () {
     var gender = genderSlider.getValue()
     var flags = $scope.tags
-    UserSvc.updateUser(gender, flags)
+    var user = $scope.currentUser._id
+    UserSvc.updateUser(user, gender, flags)
     .then(function (response) {
       $scope.$emit('update', response.data)
-      console.log("updated");
       $scope.$emit('popup', {
         message: 'Profile updated',
         type: 'alert-success'
       })
-      console.log("alerted");
     })
   }
 

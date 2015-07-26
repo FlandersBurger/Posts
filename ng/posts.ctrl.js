@@ -26,21 +26,4 @@ angular.module('app')
     })
   })
 
-  var searchMatch = function (haystack, needle) {
-    if (!needle) {
-      return true;
-    }
-    return haystack.toLowerCase().indexOf(needle.toLowerCase()) !== -1;
-  };
-
-  // init the filtered items
-  $scope.search = function () {
-    $scope.filteredPosts = $filter('filter')($scope.posts, function (post) {
-      if (searchMatch(post.body, $scope.query)) {
-        return true;
-      }
-      return false;
-    });
-  };
-
 })

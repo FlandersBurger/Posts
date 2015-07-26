@@ -32,72 +32,72 @@ router.post('/', function (req, res, next) {
   })
 })
 
-router.get('/password', function (req, res, next) {
-  if (!req.headers['x-auth']) {
+router.post('/:id/verification', function (req, res, next) {
+  if (req.auth.userid === req.params.id) {
+    User.findOne({_id: req.auth.userid})
+    .select('password')
+    .exec(function (err, user) {
+      bcrypt.compare(req.body.password, user.password, function (err, valid) {
+        if (err) { return next(err) }
+        if (!valid) { return res.sendStatus(401) }
+        res.sendStatus(200)
+      })
+    })
+  } else {
     return res.sendStatus(401)
   }
-  var auth = jwt.decode(req.headers['x-auth'], config.secret)
-  User.findOne({_id: auth.userid})
-  .select('password')
-  .exec(function (err, user) {
-    bcrypt.compare(req.query.password, user.password, function (err, valid) {
-      if (err) { return next(err) }
-      if (!valid) { return res.sendStatus(401) }
-      res.sendStatus(200)
-    })
-  })
 })
 
-router.post('/update', function (req, res, next) {
-  if (!req.headers['x-auth']) {
+router.post('/:id', function (req, res, next) {
+  if (req.auth.userid === req.params.id) {
+    User.findOne({_id: req.auth.userid})
+    .select('username')
+    .select('gender')
+    .select('flags')
+    .exec(function (err, user) {
+      if (err) { return next(err) }
+      user.gender = req.body.gender
+      user.flags = req.body.flags
+      user.save(function (err, user) {
+        if (err) {
+          throw next(err)
+        }
+        console.log(user.username + ' updated their profile')
+        res.sendStatus(200)
+      })
+    })
+  } else {
     return res.sendStatus(401)
   }
-  var auth = jwt.decode(req.headers['x-auth'], config.secret)
-  User.findOne({_id: auth.userid})
-  .select('username')
-  .select('gender')
-  .select('flags')
-  .exec(function (err, user) {
-    if (err) { return next(err) }
-    user.gender = req.body.gender
-    user.flags = req.body.flags
-    user.save(function (err, user) {
-      if (err) {
-        throw next(err)
-      }
-      console.log(user.username + ' updated their profile')
-      res.sendStatus(200)
-    })
-  })
 })
 
 
-router.post('/password', function (req, res, next) {
-  if (!req.headers['x-auth']) {
-    return res.sendStatus(401)
-  }
-  var auth = jwt.decode(req.headers['x-auth'], config.secret)
-  User.findOne({_id: auth.userid})
-  .select('username')
-  .select('password')
-  .exec(function (err, user) {
-    bcrypt.compare(req.body.oldPassword, user.password, function (err, valid) {
-      if (err) { return next(err) }
-      if (!valid) { return res.sendStatus(401) }
-      bcrypt.genSalt(10, function(err, salt) {
-        bcrypt.hash(req.body.newPassword, salt, function (err, hash) {
-          user.password = hash
-          user.save(function (err, user) {
-            if (err) {
-              throw next(err)
-            }
-            console.log(user.username + ' changed their password')
-            res.sendStatus(200)
+router.post('/:id/password', function (req, res, next) {
+  if (req.auth.userid === req.params.id) {
+    User.findOne({_id: req.auth.userid})
+    .select('username')
+    .select('password')
+    .exec(function (err, user) {
+      bcrypt.compare(req.body.oldPassword, user.password, function (err, valid) {
+        if (err) { return next(err) }
+        if (!valid) { return res.sendStatus(401) }
+        bcrypt.genSalt(10, function(err, salt) {
+          bcrypt.hash(req.body.newPassword, salt, function (err, hash) {
+            user.password = hash
+            user.save(function (err, user) {
+              if (err) {
+                throw next(err)
+              }
+              console.log(user.username + ' changed their password')
+              res.sendStatus(200)
+            })
           })
         })
       })
     })
-  })
+  } else {
+    return res.sendStatus(401)
+  }
 })
 
 router.post('/username', function (req, res, next) {

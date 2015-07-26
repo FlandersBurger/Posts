@@ -24,10 +24,15 @@ angular.module('app')
     controller: 'ProfileCtrl',
     templateUrl: 'profile.html'
   })
+  .state('lists', {
+    url: '/lists',
+    controller: 'ListsCtrl',
+    templateUrl: 'lists.html'
+  })
 
   $locationProvider.html5Mode({
     enabled: true,
     requireBase: false
   });
-  
+
 })
