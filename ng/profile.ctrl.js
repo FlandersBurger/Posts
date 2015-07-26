@@ -102,7 +102,7 @@ angular.module('app')
       $scope.$emit('update', response.data)
       console.log("updated");
       $scope.$emit('popup', {
-        message: username + ' profile updated',
+        message: 'Profile updated',
         type: 'alert-success'
       })
       console.log("alerted");
