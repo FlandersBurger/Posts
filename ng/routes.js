@@ -24,7 +24,10 @@ angular.module('app')
     controller: 'ProfileCtrl',
     templateUrl: 'profile.html'
   })
-
-  $locationProvider.html5Mode(true)
-
+  /*
+  $locationProvider.html5Mode({
+    enabled: true,
+    requireBase: false
+  });
+  */
 })

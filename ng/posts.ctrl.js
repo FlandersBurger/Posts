@@ -1,5 +1,5 @@
 angular.module('app')
-.controller('PostsCtrl', function ($scope, PostsSvc) {
+.controller('PostsCtrl', function ($scope, $filter, PostsSvc) {
 
   $scope.addPost = function () {
     if ($scope.postBody) {
@@ -14,6 +14,7 @@ angular.module('app')
   PostsSvc.fetch()
   .success(function (posts) {
     $scope.posts = posts
+    $scope.filteredPosts = posts
   })
 
   $scope.$on('ws:new_post', function (_, post) {
@@ -24,5 +25,24 @@ angular.module('app')
       })
     })
   })
+
+  var searchMatch = function (haystack, needle) {
+    if (!needle) {
+      return true;
+    }
+    return haystack.toLowerCase().indexOf(needle.toLowerCase()) !== -1;
+  };
+
+  // init the filtered items
+  $scope.search = function () {
+    $scope.filteredPosts = $filter('filter')($scope.posts, function (post) {
+      for(var attr in post) {
+        if (searchMatch(post.body, $scope.query)) {
+          return true;
+        }
+      }
+      return false;
+    });
+  };
 
 })

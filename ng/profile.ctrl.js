@@ -100,10 +100,12 @@ angular.module('app')
     UserSvc.updateUser(gender, flags)
     .then(function (response) {
       $scope.$emit('update', response.data)
+      console.log("updated");
       $scope.$emit('popup', {
         message: username + ' profile updated',
         type: 'alert-success'
       })
+      console.log("alerted");
     })
   }
 
