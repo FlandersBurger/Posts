@@ -1,6 +1,6 @@
 var Post = require('../../models/post')
 var router = require('express').Router()
-//var pubsub = require('../../pubsub')
+var pubsub = require('../../pubsub')
 var websockets = require('../../websockets')
 
 router.get('/', function (req, res, next) {
@@ -29,10 +29,10 @@ router.post('/', function (req, res, next) {
 
   post.save(function (err, post) {
     if (err) { return next(err) }
-    //pubsub.publish('new_post', post)
-    //pubsub.subscribe('new_post', function(post) {
+    pubsub.publish('new_post', post)
+    pubsub.subscribe('new_post', function(post) {
       websockets.broadcast('new_post', post)
-    //})
+    })
     res.status(201).json(post)
   })
 })

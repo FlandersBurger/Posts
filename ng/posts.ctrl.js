@@ -36,10 +36,8 @@ angular.module('app')
   // init the filtered items
   $scope.search = function () {
     $scope.filteredPosts = $filter('filter')($scope.posts, function (post) {
-      for(var attr in post) {
-        if (searchMatch(post.body, $scope.query)) {
-          return true;
-        }
+      if (searchMatch(post.body, $scope.query)) {
+        return true;
       }
       return false;
     });
