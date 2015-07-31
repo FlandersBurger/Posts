@@ -6,4 +6,17 @@ angular.module('app')
     $scope.categories = categories
   })
 
+  TaskSvc.getTasks()
+  .success(function (tasks) {
+    $scope.tasks = tasks
+  })
+
+  $scope.getTasks = function($query, category) {
+    var test = $scope.tasks.filter(function(task) {
+      return task.name.toLowerCase().indexOf($query.toLowerCase()) != -1 && task.category === category;
+    })
+    console.log(test);
+    return test
+  }
+
 })

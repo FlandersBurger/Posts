@@ -33,7 +33,7 @@ router.post('/', function (req, res, next) {
 })
 
 router.post('/:id/verification', function (req, res, next) {
-  if (req.auth.userid === req.params.id) {
+  if (checkUser(req.params.id, req)) {
     User.findOne({_id: req.auth.userid})
     .select('password')
     .exec(function (err, user) {
@@ -49,7 +49,7 @@ router.post('/:id/verification', function (req, res, next) {
 })
 
 router.post('/:id', function (req, res, next) {
-  if (req.auth.userid === req.params.id) {
+  if (checkUser(req.params.id, req)) {
     User.findOne({_id: req.auth.userid})
     .select('username')
     .select('gender')
@@ -73,7 +73,7 @@ router.post('/:id', function (req, res, next) {
 
 
 router.post('/:id/password', function (req, res, next) {
-  if (req.auth.userid === req.params.id) {
+  if (checkUser(req.params.id, req)) {
     User.findOne({_id: req.auth.userid})
     .select('username')
     .select('password')
@@ -100,34 +100,41 @@ router.post('/:id/password', function (req, res, next) {
   }
 })
 
-router.post('/username', function (req, res, next) {
-  if (!req.headers['x-auth']) {
-    return res.sendStatus(401)
-  }
-  var auth = jwt.decode(req.headers['x-auth'], config.secret)
-  User.findOne({_id: auth.userid})
-  .select('username')
-  .select('usernameLC')
-  .exec(function (err, user) {
-    User.findOne({username_lower: req.body.newUsername.toLowerCase()}, function (err, user2) {
-      if (err) { return next(err) }
-      if (user2) {
-        if (user2.id !== auth.userid) {
-          console.log(req.body.newUsername + ' already taken');
-          return res.sendStatus(304)
+router.post('/:id/username', function (req, res, next) {
+  if (checkUser(req.params.id, req)) {
+    User.findOne({_id: req.auth.userid})
+    .select('username')
+    .select('usernameLC')
+    .exec(function (err, user) {
+      User.findOne({username_lower: req.body.newUsername.toLowerCase()}, function (err, user2) {
+        if (err) { return next(err) }
+        if (user2) {
+          if (user2.id !== auth.userid) {
+            console.log(req.body.newUsername + ' already taken');
+            return res.sendStatus(304)
+          }
         }
-      }
-      console.log(user.username + ' changed their name to ' + req.body.newUsername)
-      user.username = req.body.newUsername
-      user.usernameLC = req.body.newUsername.toLowerCase()
-      user.save(function (err, user) {
-        if (err) {
-          throw next(err)
-        }
-        res.sendStatus(200)
+        console.log(user.username + ' changed their name to ' + req.body.newUsername)
+        user.username = req.body.newUsername
+        user.usernameLC = req.body.newUsername.toLowerCase()
+        user.save(function (err, user) {
+          if (err) {
+            throw next(err)
+          }
+          res.sendStatus(200)
+        })
       })
     })
-  })
+  } else {
+    return res.sendStatus(401)
+  }
 })
+
+function checkUser(user, req) {
+    if (!req.auth.userid) {
+      return false
+    }
+    return user === req.auth.userid;
+}
 
 module.exports = router

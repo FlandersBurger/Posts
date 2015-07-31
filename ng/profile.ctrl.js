@@ -81,7 +81,7 @@ angular.module('app')
   }
 
   $scope.changeUsername = function (username) {
-    UserSvc.changeUsername(username)
+    UserSvc.changeUsername($scope.currentUser._id, username)
     .then(function (response) {
       $scope.$emit('popup', {
         message: 'Username changed to ' + username,

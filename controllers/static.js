@@ -6,7 +6,7 @@ router.use(express.static(__dirname + '/../assets'))
 router.use(express.static(__dirname + '/../images'))
 router.use(express.static(__dirname + '/../templates'))
 
-router.get('/', function (req, res) {
+router.get('/*', function (req, res) {
   res.sendFile(path.resolve(__dirname + '/../layouts/app.html'))
 })
 

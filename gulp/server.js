@@ -8,4 +8,5 @@ gulp.task('dev:server', function () {
     ext: 'js',
     ignore: ['ng*', 'gulp*', 'assets*']
   })
+
 })

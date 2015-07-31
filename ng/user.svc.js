@@ -44,8 +44,8 @@ angular.module('app')
     })
   }
 
-  svc.changeUsername = function (newUsername) {
-    return $http.post('/api/users/username', {
+  svc.changeUsername = function (user, newUsername) {
+    return $http.post('/api/users/' + user + '/username', {
       newUsername: newUsername
     })
   }

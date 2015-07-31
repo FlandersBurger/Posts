@@ -31,13 +31,13 @@
                   display-property="name"
                   placeholder="Add a country"
                   replace-spaces-with-dashes="false"
-                  template="tag-template">
+                  template="tag-flag">
         <auto-complete source="loadCountries($query)"
                        min-length="0"
                        load-on-focus="true"
                        load-on-empty="true"
                        max-results-to-show="32"
-                       template="autocomplete-template">
+                       template="autocomplete-flag">
         </auto-complete>
       </tags-input>
     </div>
@@ -73,14 +73,14 @@
   </form>
 </div>
 
-    <script type="text/ng-template" id="tag-template">
-      <div class="tag-template">
+    <script type="text/ng-template" id="tag-flag">
+      <div class="tag-flag">
         <div class="flag {{data.flag}}" ng-if="data.flag"> </div>
       </div>
     </script>
 
-    <script type="text/ng-template" id="autocomplete-template">
-      <div class="autocomplete-template">
+    <script type="text/ng-template" id="autocomplete-flag">
+      <div class="autocomplete-flag">
         <div class="left-panel">
           <div class="flag {{data.flag}}" ng-if="data.flag"> </div>
         </div>
