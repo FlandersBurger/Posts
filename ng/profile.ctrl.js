@@ -362,6 +362,7 @@ angular.module('app')
       { "name": "Zambia", "flag": "flag-zm" },
       { "name": "Zimbabwe", "flag": "flag-zw" },
     ]
+    console.log(countries);
     return countries.filter(function(country) {
       return country.name.toLowerCase().indexOf($query.toLowerCase()) != -1;
     });
