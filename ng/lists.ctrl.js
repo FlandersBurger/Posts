@@ -52,4 +52,8 @@ angular.module('app')
     taskList.splice(taskList.indexOf(task), 1)
   }
 
+  $scope.startPrioritizing = function() {
+    CategoriesSvc.setPriorityList($scope.selectedTasks)
+  }
+
 })

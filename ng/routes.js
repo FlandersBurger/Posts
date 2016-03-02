@@ -29,6 +29,11 @@ angular.module('app')
     controller: 'ListsCtrl',
     templateUrl: 'lists.html'
   })
+  .state('prioritize', {
+    url: '/prioritize',
+    controller: 'prioritizeCtrl',
+    templateUrl: 'prioritize.html'
+  })
 
   $locationProvider.html5Mode({
     enabled: true,

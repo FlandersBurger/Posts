@@ -22,11 +22,15 @@
       {{ task.name }}
     </button>
   </div>
-  <div ng-show="selectedTasks.length > 1">
+  <div ng-show="selectedTasks.length > 0">
     <hr>
     <h1>Prioritize these:</h1>
-    <button ng-repeat="task in selectedTasks" class="btn btn-success" ng-click="unselectTask(task)">
+    <button ng-repeat="task in selectedTasks" class="btn btn-primary" ng-click="unselectTask(task)">
       {{ task.name }}
     </button>
+  </div>
+  <div ng-show="selectedTasks.length > 2">
+    <hr>
+    <button class="btn btn-lg btn-primary" ng-click="startPrioritizing()">Start Prioritizing</button>
   </div>
 </div>
