@@ -20,6 +20,24 @@ router.get('/:category', function (req, res, next) {
   })
 })
 
+router.post('/', function (req, res, next) {
+  Category.findOne({ name: req.body.category })
+  .exec(function(err, category) {
+    if (err) { return next(err) }
+    if (!category) {
+      category = new Category({name: req.body.category, creator: req.auth.userid})
+      category.save(function (err, user) {
+        if (err) {
+          throw next(err)
+        }
+        res.sendStatus(201)
+      })
+    } else {
+      res.sendStatus(200)
+    }
+  })
+})
+
 router.post('/:category/tasks', function (req, res, next) {
   Category.findOne({ name: req.params.category })
   .exec(function(err, category) {
@@ -37,7 +55,7 @@ router.post('/:category/tasks', function (req, res, next) {
         if (err) {
           throw next(err)
         }
-        res.sendStatus(200)
+        res.sendStatus(201)
       })
     }
   })

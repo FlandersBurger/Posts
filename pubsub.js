@@ -1,12 +1,11 @@
 var redis = require('redis')
 var url = process.env.REDISTOGO_URL || 'redis://localhost:6379'
 var host = require('url').parse(url)
+var config = require('./config')
 
 function newClient() {
   var client = redis.createClient(host.port, host.hostname)
-  if (host.auth) {
-    client.auth("PunchM0nkeyPr0ducti0n$RedisP@ssw0rd");
-  }
+  client.auth(config.redisPass);
   return client
 }
 
@@ -18,9 +17,7 @@ exports.publish = function (topic, data) {
 
 exports.subscribe = function(topic, cb) {
   var client = newClient()
-  if (host.auth) {
-    client.auth("PunchM0nkeyPr0ducti0n$RedisP@ssw0rd");
-  }
+  client.auth(config.redisPass);
   client.subscribe(topic)
   client.on('message', function (channel, message) {
     cb(JSON.parse(message))

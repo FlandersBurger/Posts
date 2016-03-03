@@ -1,8 +1,15 @@
-<div class="container">
-  <div class="form-group">
-    <input type="text" ng-model="categorySearch" class="form-control" placeholder="Search Categories">
-  </div>
-  <button ng-repeat="category in categories | orderBy:'+name' | filter:categorySearch" class="btn btn-default" ng-click="selectCategory(category)">
+<div class="container" ng-init="init()">
+  <form class="form-group">
+    <div class="input-group">
+      <input type="text" ng-model="enteredCategory" class="form-control" placeholder="Search or Add Category">
+      <span class="input-group-btn">
+        <button ng-click="newCategory(enteredCategory)" class="btn btn-default" type="submit">
+          <i class="fa fa-plus"></i>
+        </button>
+      </span>
+    </div>
+  </form>
+  <button ng-repeat="category in categories | orderBy:'+name' | filter:enteredCategory" class="btn btn-default" ng-click="selectCategory(category)">
     {{ category.name }}
   </button>
   <div ng-show="selectedCategory">
@@ -10,15 +17,15 @@
     <form class="form-group">
       <label>{{ selectedCategory.name }}</label>
       <div class="input-group">
-        <input type="text" ng-model="taskToAdd" class="form-control" placeholder="Search or Add Item">
+        <input type="text" ng-model="enteredTask" class="form-control" placeholder="Search or Add Item">
         <span class="input-group-btn">
-          <button ng-click="newTask(taskToAdd)" class="btn btn-default" type="submit">
+          <button ng-click="newTask(enteredTask)" class="btn btn-default" type="submit">
             <i class="fa fa-plus"></i>
           </button>
         </span>
       </div>
     </form>
-    <button ng-repeat="task in selectableTasks | orderBy:'+name' | filter:taskToAdd" class="btn btn-default" ng-click="selectTask(task)">
+    <button ng-repeat="task in selectableTasks | orderBy:'+name' | filter:enteredTask" class="btn btn-default" ng-click="selectTask(task)">
       {{ task.name }}
     </button>
   </div>

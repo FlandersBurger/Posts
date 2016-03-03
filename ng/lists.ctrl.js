@@ -1,19 +1,21 @@
 angular.module('app')
 .controller('ListsCtrl', function ($scope, CategoriesSvc) {
 
-  CategoriesSvc.getCategories()
-  .success(function (categories) {
-    $scope.categories = categories
-    $scope.tasks = []
-    for (var i = 0; i < $scope.categories.length; i++) {
-      for (var j = 0; j < $scope.categories[i].tasks.length; j++) {
-        $scope.tasks.push({
-          "category": $scope.categories[i].name,
-          "task": $scope.categories[i].tasks[j].name
-        })
+  $scope.init = function () {
+    CategoriesSvc.getCategories()
+    .success(function (categories) {
+      $scope.categories = categories
+      $scope.tasks = []
+      for (var i = 0; i < $scope.categories.length; i++) {
+        for (var j = 0; j < $scope.categories[i].tasks.length; j++) {
+          $scope.tasks.push({
+            "category": $scope.categories[i].name,
+            "task": $scope.categories[i].tasks[j].name
+          })
+        }
       }
-    }
-  })
+    })
+  }
 
   $scope.selectCategory = function(category) {
     $scope.selectedCategory = category
@@ -24,13 +26,22 @@ angular.module('app')
     }
   }
 
+  $scope.newCategory = function (category) {
+    CategoriesSvc.addCategory({
+      category: category
+    }).success(function () {
+      $scope.init()
+      $scope.enteredCategory = null
+    })
+  }
+
   $scope.newTask = function (task) {
     CategoriesSvc.addTask($scope.selectedCategory.name, {
       task: task
     }).success(function () {
       $scope.selectedCategory.tasks.push({ name: task })
       $scope.addTask($scope.selectedTasks, $scope.selectedCategory.tasks[$scope.selectedCategory.tasks.length - 1])
-      $scope.taskToAdd = null
+      $scope.enteredTask = null
     })
   }
 
