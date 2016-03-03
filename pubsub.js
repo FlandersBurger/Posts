@@ -5,7 +5,7 @@ var host = require('url').parse(url)
 function newClient() {
   var client = redis.createClient(host.port, host.hostname)
   if (host.auth) {
-    client.auth(host.auth.split(":")[1])
+    client.auth("PunchM0nkeyPr0ducti0n$RedisP@ssw0rd");
   }
   return client
 }
@@ -18,6 +18,9 @@ exports.publish = function (topic, data) {
 
 exports.subscribe = function(topic, cb) {
   var client = newClient()
+  if (host.auth) {
+    client.auth("PunchM0nkeyPr0ducti0n$RedisP@ssw0rd");
+  }
   client.subscribe(topic)
   client.on('message', function (channel, message) {
     cb(JSON.parse(message))
