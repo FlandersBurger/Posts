@@ -9,7 +9,7 @@
       </span>
     </div>
   </form>
-  <button ng-repeat="category in categories | orderBy:'+name' | filter:enteredCategory" class="btn btn-default" ng-click="selectCategory(category)">
+  <button ng-repeat="category in categories | orderBy:'+name' | filter:enteredCategory" class="btn btn-default choice" ng-click="selectCategory(category)">
     {{ category.name }}
   </button>
   <div ng-show="selectedCategory">
@@ -25,14 +25,14 @@
         </span>
       </div>
     </form>
-    <button ng-repeat="task in selectableTasks | orderBy:'+name' | filter:enteredTask" class="btn btn-default" ng-click="selectTask(task)">
+    <button ng-repeat="task in selectableTasks | orderBy:'+name' | filter:enteredTask" class="btn btn-default choice" ng-click="selectTask(task)">
       {{ task.name }}
     </button>
   </div>
   <div ng-show="selectedTasks.length > 0">
     <hr>
     <h1>Prioritize these:</h1>
-    <button ng-repeat="task in selectedTasks" class="btn btn-primary" ng-click="unselectTask(task)">
+    <button ng-repeat="task in selectedTasks" class="btn btn-primary choice" ng-click="unselectTask(task)">
       {{ task.name }}
     </button>
   </div>

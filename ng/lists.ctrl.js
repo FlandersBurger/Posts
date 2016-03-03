@@ -27,22 +27,41 @@ angular.module('app')
   }
 
   $scope.newCategory = function (category) {
-    CategoriesSvc.addCategory({
-      category: category
-    }).success(function () {
-      $scope.init()
-      $scope.enteredCategory = null
-    })
+    var found = false
+    for (var i = 0; i < $scope.categories.length; i++) {
+      if ($scope.categories[i].name === category) {
+        $scope.selectCategory($scope.categories[i])
+        found = true
+      }
+    }
+    if (!found) {
+      CategoriesSvc.addCategory({
+        category: category
+      }).success(function (category) {
+        $scope.init()
+        $scope.selectCategory(category)
+      })
+    }
+    $scope.enteredCategory = null
   }
 
   $scope.newTask = function (task) {
-    CategoriesSvc.addTask($scope.selectedCategory.name, {
-      task: task
-    }).success(function () {
-      $scope.selectedCategory.tasks.push({ name: task })
-      $scope.addTask($scope.selectedTasks, $scope.selectedCategory.tasks[$scope.selectedCategory.tasks.length - 1])
-      $scope.enteredTask = null
-    })
+    var found = false
+    for (var i = 0; i < $scope.selectedCategory.tasks.length; i++) {
+      if ($scope.selectedCategory.tasks[i].name === task) {
+        found = true
+        $scope.selectTask($scope.selectedCategory.tasks[i])
+      }
+    }
+    if (!found) {
+      CategoriesSvc.addTask($scope.selectedCategory.name, {
+        task: task
+      }).success(function () {
+        $scope.selectedCategory.tasks.push({ name: task })
+        $scope.addTask($scope.selectedTasks, $scope.selectedCategory.tasks[$scope.selectedCategory.tasks.length - 1])
+      })
+    }
+    $scope.enteredTask = null
   }
 
   $scope.selectTask = function (task) {
