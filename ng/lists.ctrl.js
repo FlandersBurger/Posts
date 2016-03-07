@@ -1,5 +1,5 @@
 angular.module('app')
-.controller('ListsCtrl', function ($scope, CategoriesSvc) {
+.controller('ListsCtrl', function ($scope, $location, CategoriesSvc) {
 
   $scope.init = function () {
     CategoriesSvc.getCategories()
@@ -84,6 +84,7 @@ angular.module('app')
 
   $scope.startPrioritizing = function() {
     CategoriesSvc.setPriorityList($scope.selectedTasks)
+    $location.path('/prioritize')
   }
 
 })

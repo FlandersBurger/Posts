@@ -31,7 +31,7 @@ angular.module('app')
   })
   .state('prioritize', {
     url: '/prioritize',
-    controller: 'prioritizeCtrl',
+    controller: 'PrioritizeCtrl',
     templateUrl: 'prioritize.html'
   })
 

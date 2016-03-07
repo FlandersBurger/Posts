@@ -11,7 +11,7 @@ angular.module('app')
     return $http.get('/api/categories/' + category)
   }
 
-  svc.addCategory = function (category) {
+  svc.addCategories = function (category) {
     return $http.post('/api/categories/', category)
   }
 
