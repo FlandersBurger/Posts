@@ -28,7 +28,7 @@ angular.module('app')
         svc.priorityList.push({
           firstChoice: list[random === 0 ? i : j].name,
           secondChoice: list[random === 0 ? j : i].name,
-          choice: 0
+          choice: ''
         })
       }
     }
