@@ -12,8 +12,16 @@ gulp.task('js', function () {
     .pipe(uglify())
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('assets'))
+    .on('error', onError);
 })
 
 gulp.task('watch:js', ['js'], function () {
   gulp.watch('ng/**/*.js', ['js'])
 })
+
+
+
+function onError(err) {
+  console.log(err);
+  this.emit('end');
+}

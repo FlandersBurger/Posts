@@ -22,10 +22,11 @@ angular.module('app')
   svc.setPriorityList = function(list) {
     svc.priorityList = []
     //Make a new choice list
-    for (i = 0; i < list.length; i++) {
-      for (j = i + 1; j < list.length; j++) {
+    for (var i = 0; i < list.length; i++) {
+      for (var j = i + 1; j < list.length; j++) {
         var random = Math.round(Math.random())
         svc.priorityList.push({
+          id: 0,
           firstChoice: list[random === 0 ? i : j].name,
           secondChoice: list[random === 0 ? j : i].name,
           choice: ''
@@ -33,6 +34,9 @@ angular.module('app')
       }
     }
     shuffle(svc.priorityList)
+    for (var i = 0; i < svc.priorityList.length; i++) {
+      svc.priorityList[i].id = i + 1
+    }
   }
 
   svc.getPriorityList = function(list) {
