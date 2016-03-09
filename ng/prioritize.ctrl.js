@@ -6,26 +6,29 @@ angular.module('app')
   if (!$scope.priorityList) {
     $location.path('/lists')
   } else {
+    $scope.selectedQuestion = 1
     $scope.currentQuestion = 1
     $scope.done = false
   }
 
   $scope.makeChoice = function(choice) {
     for (var i = 0; i < $scope.priorityList.length; i++) {
-      if ($scope.priorityList[i].id === $scope.currentQuestion) {
+      if ($scope.priorityList[i].id === $scope.selectedQuestion) {
         $scope.priorityList[i].choice = choice === 1 ? $scope.priorityList[i].firstChoice : $scope.priorityList[i].secondChoice
       }
     }
+    if ($scope.selectedQuestion === $scope.currentQuestion) {
+      $scope.currentQuestion = $scope.currentQuestion === $scope.priorityList.length ? 1 : $scope.currentQuestion + 1
+    }
+    $scope.selectedQuestion = $scope.currentQuestion
     var found = false
     for (var i = 0; i < $scope.priorityList.length; i++) {
       if ($scope.priorityList[i].choice === '') {
-        $scope.currentQuestion = $scope.priorityList[i].id
         found = true
         break
       }
     }
     if (!found) {
-      $scope.currentQuestion = $scope.currentQuestion === $scope.priorityList.length ? 1 : $scope.currentQuestion + 1
       $scope.done = true
     }
   }
@@ -35,14 +38,14 @@ angular.module('app')
       return ''
     }
     for (var i = 0; i < $scope.priorityList.length; i++) {
-      if ($scope.priorityList[i].id === $scope.currentQuestion) {
+      if ($scope.priorityList[i].id === $scope.selectedQuestion) {
         return choice === 1 ? $scope.priorityList[i].firstChoice : $scope.priorityList[i].secondChoice
       }
     }
   }
 
-  $scope.setCurrentQuestion = function(question) {
-    $scope.currentQuestion = question
+  $scope.selectQuestion = function(question) {
+    $scope.selectedQuestion = question
   }
 
   $scope.getFilteredPriorityList = function() {
@@ -70,7 +73,7 @@ angular.module('app')
       return ''
     }
     for (var i = 0; i < $scope.priorityList.length; i++) {
-      if ($scope.priorityList[i].id === $scope.currentQuestion) {
+      if ($scope.priorityList[i].id === $scope.selectedQuestion) {
         if ($scope.priorityList[i].choice === '') {
           return 'btn-primary'
         }
