@@ -73,19 +73,19 @@
   </form>
 </div>
 
-    <script type="text/ng-template" id="tag-flag">
-      <div class="tag-flag">
-        <div class="flag {{data.flag}}" ng-if="data.flag"> </div>
-      </div>
-    </script>
+<script type="text/ng-template" id="tag-flag">
+  <div class="tag-flag">
+    <div class="flag {{data.flag}}" ng-if="data.flag"> </div>
+  </div>
+</script>
 
-    <script type="text/ng-template" id="autocomplete-flag">
-      <div class="autocomplete-flag">
-        <div class="left-panel">
-          <div class="flag {{data.flag}}" ng-if="data.flag"> </div>
-        </div>
-        <div class="right-panel">
-          <span ng-bind-html="$highlight($getDisplayText())"></span>
-        </div>
-      </div>
-    </script>
+<script type="text/ng-template" id="autocomplete-flag">
+  <div class="autocomplete-flag">
+    <div class="left-panel">
+      <div class="flag {{data.flag}}" ng-if="data.flag"> </div>
+    </div>
+    <div class="right-panel">
+      <span ng-bind-html="$highlight($getDisplayText())"></span>
+    </div>
+  </div>
+</script>

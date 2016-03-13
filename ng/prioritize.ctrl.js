@@ -29,6 +29,7 @@ angular.module('app')
       }
     }
     if (!found) {
+      $('#prioritizeChoices').hide(300)
       $scope.done = true
     }
   }
@@ -84,6 +85,11 @@ angular.module('app')
         }
       }
     }
+  }
+
+  $scope.showChoices = function() {
+    $('#prioritizeChoices').show(1000)
+    $('#reviewChoices').hide()
   }
 
 })
