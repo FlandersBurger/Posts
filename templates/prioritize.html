@@ -24,9 +24,9 @@
         {{(getChoicesMade() / priorityList.length * 100).toFixed(0)}}%
       </div>
     </div>
-    <button style="width:100%" class="btn btn-lg btn-primary" ng-class="getButtonClass(1)" ng-click="makeChoice(1)">{{getButtonValue(1)}}</button>
+    <button animate-on-change="currentQuestion" style="width:100%" class="btn btn-lg btn-primary" ng-class="getButtonClass(1)" ng-click="makeChoice(1)" ng-disabled="done">{{getButtonValue(1)}}</button>
     <h2>or</h2>
-    <button style="width:100%" class="btn btn-lg btn-primary" ng-class="getButtonClass(2)" ng-click="makeChoice(2)">{{getButtonValue(2)}}</button>
+    <button animate-on-change="currentQuestion" style="width:100%" class="btn btn-lg btn-primary" ng-class="getButtonClass(2)" ng-click="makeChoice(2)" ng-disabled="done">{{getButtonValue(2)}}</button>
     <hr>
   </div>
   <div id="prioritizeResult" ng-show="done">

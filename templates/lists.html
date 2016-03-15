@@ -9,7 +9,7 @@
       </span>
     </div>
   </form>
-  <button ng-repeat="category in categories | orderBy:'+name' | filter:enteredCategory" class="btn btn-default choice" ng-click="selectCategory(category)">
+  <button ng-repeat="category in categories | orderBy:'+name' | filter:enteredCategory | limitTo: 10" class="btn btn-default choice" ng-click="selectCategory(category)">
     {{ category.name }}
   </button>
   <div ng-show="selectedCategory">
@@ -25,7 +25,7 @@
         </span>
       </div>
     </form>
-    <button ng-repeat="task in selectableTasks | orderBy:'+name' | filter:enteredTask" class="btn btn-default choice" ng-click="selectTask(task)">
+    <button ng-repeat="task in selectableTasks | orderBy:'+name' | filter:enteredTask | limitTo: 10" class="btn btn-default choice" ng-click="selectTask(task)">
       {{ task.name }}
     </button>
   </div>
