@@ -20,6 +20,7 @@ angular.module('app')
   }
 
   svc.setPriorityList = function(list) {
+    svc.choices = list
     svc.priorityList = []
     //Make a new choice list
     for (var i = 0; i < list.length; i++) {

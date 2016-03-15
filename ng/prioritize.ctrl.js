@@ -92,4 +92,38 @@ angular.module('app')
     $('#reviewChoices').hide()
   }
 
+  $scope.showResults = function() {
+
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      var result = []
+      function drawChart() {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'choice');
+      data.addColumn('number', 'votes');
+      for (var i = 0; i < CategoriesSvc.choices.length; i++) {
+        CategoriesSvc.choices[i].votes = 0
+        for (var j = 0; j < $scope.priorityList.length; j++) {
+          if (CategoriesSvc.choices[i].name === $scope.priorityList[j].choice) {
+            CategoriesSvc.choices[i].votes++
+          }
+        }
+        result.push([CategoriesSvc.choices[i].name, CategoriesSvc.choices[i].votes])
+      }
+
+      data.addRows(result)
+      var options = {
+        title: 'Prioritized List'
+      };
+
+      var chart = new google.visualization.PieChart(document.getElementById('resultsChart'));
+
+      chart.draw(data, options);
+    }
+    $('#prioritizeResult').hide()
+    $('#prioritizeChoices').hide()
+    $('#priorityResults').show(1000)
+  }
+
 })
