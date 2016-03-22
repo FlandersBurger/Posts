@@ -1,6 +1,6 @@
 <div class="container" ng-init="init()">
   <form class="form-group">
-    <h2 ng-click="enteredCategory ? showCategory = !showCategory : showCategory = true"><i class="fa" ng-class="{'fa-caret-down': showCategory, 'fa-caret-right': !showCategory}"></i> Category</h2>
+    <h2 ng-click="selectedCategory ? showCategory = !showCategory : showCategory = true" ng-style="showCategory ? {'font-size' : '2em'} : {'font-size' : '1.2em'}"><i class="fa" ng-class="{'fa-caret-down': showCategory, 'fa-caret-right': !showCategory}"></i> Category</h2>
     <div ng-show="showCategory">
       <div class="input-group">
         <input type="text" ng-model="enteredCategory" class="form-control" placeholder="Search or Add Category">

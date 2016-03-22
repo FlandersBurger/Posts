@@ -125,5 +125,5 @@ angular.module('app')
     $('#prioritizeChoices').hide()
     $('#priorityResults').show(1000)
   }
-
+  
 })
