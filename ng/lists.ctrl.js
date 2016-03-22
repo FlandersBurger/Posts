@@ -1,6 +1,8 @@
 angular.module('app')
 .controller('ListsCtrl', function ($scope, $location, CategoriesSvc) {
 
+  $scope.showCategory = true
+
   $scope.init = function () {
     CategoriesSvc.getCategories()
     .success(function (categories) {
@@ -24,6 +26,8 @@ angular.module('app')
     for (var i = 0; i < $scope.selectedCategory.tasks.length; i++) {
       $scope.selectableTasks.push($scope.selectedCategory.tasks[i])
     }
+    $scope.showCategory = false
+    $scope.enteredCategory = null
   }
 
   $scope.newCategory = function (category) {
@@ -67,6 +71,7 @@ angular.module('app')
   $scope.selectTask = function (task) {
     $scope.addTask($scope.selectedTasks, task)
     $scope.removeTask($scope.selectableTasks, task)
+    $scope.enteredTask = null
   }
 
   $scope.unselectTask = function (task) {
