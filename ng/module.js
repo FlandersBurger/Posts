@@ -2,7 +2,8 @@ angular.module('app', [
   'ui.router',
   'ngResource',
   'ngTagsInput',
-  'ngAnimate'
+  'ngAnimate',
+  'tc.chartjs'
 ])
 .directive('animateOnChange', function($timeout) {
   return function(scope, element, attr) {

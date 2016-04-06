@@ -33,7 +33,9 @@
     <button id="reviewChoices" class="btn btn-lg btn-primary" ng-click="showChoices()">Review Choices</button>
     <button class="btn btn-lg btn-primary" ng-click="showResults()">Results</button>
   </div>
-  <div id="priorityResults" style="display:none">
-    <div id="resultsChart" style="width:900px;min-height:500px;"></div>
-  </div>
+  <canvas tc-chartjs-pie chart-data="data" chart-options="options" chart-legend="legend" ng-click="chartClick($event)" chart="chart"></canvas>
+  <div tc-chartjs-legend chart-legend="legend"></div>
+  <!--div id="priorityResults" style="display:none">
+    <canvas tc-chartjs-pie chart-data="data" chart-options="options" auto-legend></canvas>
+  </div-->
 </div>
