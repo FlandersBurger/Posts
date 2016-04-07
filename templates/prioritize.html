@@ -2,13 +2,23 @@
   <div id="prioritizeChoices">
     <h1>This or That</h1>
     <ul class="pagination">
-      <li ng-repeat="question in getFilteredPriorityList() | orderBy : question.id : reverse" ng-class="{'active' : question.id === selectedQuestion}" ng-click="selectQuestion(question.id)">
-        <a href="#" ng-hide="question.choice === ''">
-          <span>{{question.id}}</span>
-        </a>
-        <a href="#" ng-show="question.choice === ''">
-          <i class="fa fa-spinner fa-spin"></i>
-        </a>
+      <li ng-click="selectQuestion(1)" ng-class="{'active' : selectedQuestion === 1}">
+        <span ng-hide="getFilteredPriorityList()[0].choice === ''">1</span>
+        <span ng-show="getFilteredPriorityList()[0].choice === ''"><i class="fa fa-spinner fa-spin"></i></span>
+      </li>
+      <li ng-click="selectQuestion(selectedQuestion - 3)" ng-show="selectedQuestion > 4">
+        <span>...</span>
+      </li>
+      <li ng-repeat="question in getFilteredPriorityList()" ng-class="{'active' : question.id === selectedQuestion}" ng-click="selectQuestion(question.id)" ng-show="question.id > 1 && question.id >= selectedQuestion - 2 && question.id <= selectedQuestion + 2 && question.id < getFilteredPriorityList().length">
+          <span ng-hide="question.choice === ''">{{question.id}}</span>
+          <span ng-show="question.choice === ''"><i class="fa fa-spinner fa-spin"></i></span>
+      </li>
+      <li ng-click="selectQuestion(selectedQuestion + 3)" ng-show="selectedQuestion < getFilteredPriorityList().length - 3 && getFilteredPriorityList().length > 6">
+        <span>...</span>
+      </li>
+      <li ng-click="selectQuestion(getFilteredPriorityList().length)" ng-class="{'active' : selectedQuestion === getFilteredPriorityList().length}" ng-show="selectedQuestion !== 1 || done">
+        <span ng-hide="getFilteredPriorityList()[getFilteredPriorityList().length - 1].choice === ''">{{getFilteredPriorityList().length}}</span>
+        <span ng-show="getFilteredPriorityList()[getFilteredPriorityList().length - 1].choice === ''"><i class="fa fa-spinner fa-spin"></i></span>
       </li>
     </ul>
     <div class="progress" ng-hide="done">

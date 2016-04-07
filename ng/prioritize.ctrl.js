@@ -53,7 +53,7 @@ angular.module('app')
     if (!$scope.priorityList) {
       return []
     }
-    return $scope.priorityList.filter(function(question) {return question.choice !== '' || question.id === $scope.currentQuestion})
+    return $scope.priorityList.sort(function(a, b){return a.id-b.id}).filter(function(question) {return question.choice !== '' || question.id === $scope.currentQuestion})
   }
 
   $scope.getChoicesMade = function() {
@@ -134,7 +134,7 @@ angular.module('app')
       animateScale : false,
 
       //String - A legend template
-      legendTemplate : '<ul class="tc-chart-js-legend"><% for (var i=0; i<segments.length; i++){%><li><span style="background-color:<%=segments[i].fillColor%>"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>'
+      legendTemplate : '<h3 class="tc-chart-js-legend" style="padding:5px"><% for (var i=0; i<segments.length; i++){%><div class="label" style="float:left;margin:5px;background-color:<%=segments[i].fillColor%>"><%if(segments[i].label){%><%=segments[i].label%><%}%></div><%}%></h3>'
     }
     for (var i = 0; i < CategoriesSvc.choices.length; i++) {
       CategoriesSvc.choices[i].votes = 0

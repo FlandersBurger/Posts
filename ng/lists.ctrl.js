@@ -92,4 +92,13 @@ angular.module('app')
     $location.path('/prioritize')
   }
 
+  $scope.getQuestions = function() {
+    if (!$scope.selectedTasks) return ''
+    var counter = 0
+    for (var i = $scope.selectedTasks.length - 1; i > 0; i--) {
+      counter += i
+    }
+    return counter
+  }
+
 })
