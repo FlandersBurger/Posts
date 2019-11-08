@@ -15,7 +15,7 @@
     "jwt-simple": "^0.3.0",
     "lodash": "4.0.0",
     "mongodb-uri": "^0.9.7",
-    "mongoose": "^4.0.2",
+    "mongoose": "^5.7.8",
     "morgan": "^1.6.1",
     "redis": "^0.12.1",
     "ui-router": "1.0.0-alpha0",
