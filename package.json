@@ -19,7 +19,7 @@
     "morgan": "^1.6.1",
     "redis": "^0.12.1",
     "ui-router": "1.0.0-alpha0",
-    "ws": "^0.7.2"
+    "ws": "^7.2.0"
   },
   "scripts": {
     "start": "node ../boot.js",
